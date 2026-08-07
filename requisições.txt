@@ -1,0 +1,12 @@
+POST http://localhost:3000/auth/register
+GET http://localhost:3000/movies/550/recommendations
+POST http://localhost:3000/library
+GET http://localhost:3000/library
+
+node src/server.js
+
+{
+    "email":"gustavo@email.com",
+    "password":"123456"
+}
+

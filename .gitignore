@@ -1,0 +1,20 @@
+BARENBRUG/Projetos/reserve.rar
+BARENBRUG/Projetos/reserve/src/daemon/apireserve.out.log
+BARENBRUG/Projetos/reservebkp.rar
+BARENBRUG/Projetos/reserve/src/daemon/apireserve.err.log
+BARENBRUG/Projetos/reserve/src/daemon/apireserve.exe
+BARENBRUG/Projetos/reserve/src/daemon/apireserve.exe.config
+BARENBRUG/Projetos/reserve/src/daemon/apireserve.wrapper.log
+BARENBRUG/Projetos/reserve/src/daemon/apireserve.xml
+.vscode/settings.json
+BARENBRUG/Projetos/reserve/src/backend-linux
+BARENBRUG/Projetos/reserve/src/backend-macos
+BARENBRUG/Projetos/reserve/src/backend-win.exe
+_Projetos WEB/PortalReembolso - Real Arenas/API/config/port.js
+_Projetos WEB/PortalReembolso - Real Arenas/PortalReembolso/src/URL.js
+PLAENGE/VS/WebservicePlaengeWSvc/.vs/WebservicePlaengeWSvc/v16/.suo
+PLAENGE/VS/WebservicePlaengeWSvc/.vs/WebservicePlaengeWSvc/v16/Server/sqlite3/storage.ide
+PLAENGE/VS/WebservicePlaengeWSvc/WinService/obj/Release/WinService.csprojAssemblyReference.cache
+PLAENGE/VS/WebservicePlaengeWSvc/WebservicePlaengeWSvc/obj/Release/WebservicePlaengeWSvc.csprojAssemblyReference.cache
+
+.history
