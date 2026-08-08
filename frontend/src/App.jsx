@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes, Navigate } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import ProtectedRoute from './components/ProtectedRoute'
 import Home from './pages/Home'
@@ -8,9 +8,10 @@ import Register from './pages/Register'
 import MovieDetail from './pages/MovieDetail'
 import Library from './pages/Library'
 import BoxOffice from './pages/BoxOffice'
+import AllTimeBoxOffice from './pages/AllTimeBoxOffice' // Importe o componente de bilheterias de todos os tempos
 import Dashboard from './pages/Dashboard'
 import Suggestions from './pages/Suggestions'
-import NearbySessions from './pages/NearbySessions' // 1. IMPORTAR AQUI
+import NearbySessions from './pages/NearbySessions'
 
 function App() {
   return (
@@ -21,12 +22,16 @@ function App() {
         <Routes>
           {/* Rotas Públicas */}
           <Route path="/" element={<Home />} />
-          <Route path="/sessoes" element={<NearbySessions />} /> {/* 2. REGISTRAR A ROTA AQUI */}
+          <Route path="/sessoes" element={<NearbySessions />} />
           <Route path="/buscar" element={<Search />} />
           <Route path="/entrar" element={<Login />} />
           <Route path="/cadastrar" element={<Register />} />
           <Route path="/filme/:id" element={<MovieDetail />} />
-          <Route path="/bilheteria" element={<BoxOffice />} />
+
+          {/* Rotas de Bilheteria */}
+          <Route path="/bilheteria" element={<Navigate to="/bilheteria/em-cartaz" replace />} />
+          <Route path="/bilheteria/em-cartaz" element={<BoxOffice />} />
+          <Route path="/bilheteria/todos-os-tempos" element={<AllTimeBoxOffice />} />
 
           {/* Rotas Protegidas */}
           <Route
