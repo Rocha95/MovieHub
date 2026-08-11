@@ -8,61 +8,184 @@ export default function MovieDetail() {
   const { id } = useParams()
   const { user } = useAuth()
 
+  // Estados principais de dados
   const [movie, setMovie] = useState(null)
   const [recommendations, setRecommendations] = useState([])
   const [boxOffice, setBoxOffice] = useState(null)
   const [libraryEntry, setLibraryEntry] = useState(null)
+
+  // Estados de feedback e UI
+  const [loading, setLoading] = useState(true)
   const [savingStatus, setSavingStatus] = useState(null)
   const [feedback, setFeedback] = useState(null)
 
+  // Estados do Modal "Já Assisti"
+  const [isWatchedModalOpen, setIsWatchedModalOpen] = useState(false)
+  const [watchedDate, setWatchedDate] = useState(() => new Date().toISOString().split('T')[0])
+  const [rating, setRating] = useState(10)
+
+  // Carregamento dos dados do filme
   useEffect(() => {
+    let isMounted = true
+    setLoading(true)
     setMovie(null)
     setFeedback(null)
 
-    api.get(`/movies/${id}`).then((res) => setMovie(res.data))
-    api
-      .get(`/movies/${id}/recommendations`)
-      .then((res) => setRecommendations(res.data))
-    api
-      .get(`/movies/${id}/boxoffice`)
-      .then((res) => setBoxOffice(res.data))
-      .catch(() => setBoxOffice({ available: false }))
+    const fetchMovieData = async () => {
+      try {
+        const [movieRes, recsRes, boxOfficeRes] = await Promise.all([
+          api.get(`/movies/${id}`),
+          api.get(`/movies/${id}/recommendations`).catch(() => ({ data: [] })),
+          api.get(`/movies/${id}/boxoffice`).catch(() => ({ data: { available: false } })),
+        ])
 
-    if (user) {
-      api.get('/library').then((res) => {
-        const entry = res.data.find((item) => item.movieId === Number(id))
+        if (!isMounted) return
+
+        setMovie(movieRes.data)
+        setRecommendations(recsRes.data)
+        setBoxOffice(boxOfficeRes.data)
+      } catch (err) {
+        if (isMounted) setFeedback('Erro ao carregar detalhes do filme.')
+      } finally {
+        if (isMounted) setLoading(false)
+      }
+    }
+
+    fetchMovieData()
+
+    return () => {
+      isMounted = false
+    }
+  }, [id])
+
+  // Carregamento de dados da biblioteca do usuário
+  useEffect(() => {
+    let isMounted = true
+
+    if (!user) {
+      setLibraryEntry(null)
+      return
+    }
+
+    api
+      .get('/library')
+      .then((res) => {
+        if (!isMounted) return
+        const entry = res.data.find((item) => Number(item.movieId) === Number(id))
         setLibraryEntry(entry || null)
       })
+      .catch(() => {
+        if (isMounted) setLibraryEntry(null)
+      })
+
+    return () => {
+      isMounted = false
     }
   }, [id, user])
 
-  async function handleAddToLibrary(status) {
-    setSavingStatus(status)
+  // Ação: Abrir modal e preencher os dados atuais
+  function handleOpenWatchedModal() {
+    setFeedback(null)
+
+    const currentDateValue = libraryEntry?.watchedAt || libraryEntry?.watchedDate
+
+    let initialDate = new Date().toISOString().split('T')[0]
+    if (currentDateValue) {
+      const parsed = new Date(currentDateValue)
+      if (!isNaN(parsed.getTime())) {
+        initialDate = parsed.toISOString().split('T')[0]
+      }
+    }
+
+    const initialRating =
+      libraryEntry?.rating !== undefined && libraryEntry?.rating !== null
+        ? Number(libraryEntry.rating)
+        : 10
+
+    setWatchedDate(initialDate)
+    setRating(initialRating)
+    setIsWatchedModalOpen(true)
+  }
+
+  // Ação: Adicionar à lista "Quero Assistir"
+  async function handleAddToWatchlist() {
+    setSavingStatus('WATCHLIST')
     setFeedback(null)
 
     try {
-      await api.post('/library', { movieId: Number(id), status })
-      setLibraryEntry((prev) => ({ ...prev, status }))
-      setFeedback(
-        status === 'WATCHED'
-          ? 'Marcado como assistido.'
-          : 'Adicionado à sua lista para assistir.'
+      const response = await api.post('/library', {
+        movieId: Number(id),
+        status: 'WATCHLIST',
+      })
+
+      setLibraryEntry(
+        response.data || {
+          movieId: Number(id),
+          status: 'WATCHLIST',
+        }
       )
+      setFeedback('Adicionado à sua lista para assistir.')
     } catch (err) {
-      setFeedback(
-        err.response?.data?.message || 'Não foi possível salvar. Tente novamente.'
-      )
+      setFeedback(err.response?.data?.message || 'Não foi possível salvar na lista.')
     } finally {
       setSavingStatus(null)
     }
   }
 
-  if (!movie) {
+  // Ação: Salvar/Confirmar filme assistido
+  async function handleSaveWatched(e) {
+    if (e) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+
+    setSavingStatus('WATCHED')
+    setFeedback(null)
+
+    try {
+      const todayStr = new Date().toISOString().split('T')[0]
+      const finalDate = watchedDate && watchedDate.trim() !== '' ? watchedDate : todayStr
+      const finalRating = Number(rating) >= 0 && Number(rating) <= 10 ? Number(rating) : 10
+
+      const payload = {
+        movieId: Number(id),
+        status: 'WATCHED',
+        watchedAt: finalDate,
+        watchedDate: finalDate,
+        rating: finalRating,
+        score: finalRating,
+      }
+
+      const response = await api.post('/library', payload, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      setLibraryEntry(response.data || payload)
+      setFeedback('Marcado como assistido com sucesso!')
+      setIsWatchedModalOpen(false)
+    } catch (error) {
+      console.error('>>> Erro ao salvar filme assistido:', error.response?.data || error.message)
+      setFeedback(error.response?.data?.message || 'Erro ao salvar no servidor.')
+    } finally {
+      setSavingStatus(null)
+    }
+  }
+
+  if (loading) {
     return <p className="mx-auto max-w-6xl px-6 py-10 text-dust">Carregando...</p>
   }
 
+  if (!movie) {
+    return <p className="mx-auto max-w-6xl px-6 py-10 text-dust">Filme não encontrado.</p>
+  }
+
+  const savedDate = libraryEntry?.watchedAt || libraryEntry?.watchedDate
+
   return (
     <div>
+      {/* Banner Principal */}
       <section
         className="relative bg-cover bg-center py-20"
         style={{
@@ -86,9 +209,7 @@ export default function MovieDetail() {
                 {movie.tagline.toUpperCase()}
               </p>
             )}
-            <h1 className="mt-2 font-display text-4xl text-cream sm:text-5xl">
-              {movie.title}
-            </h1>
+            <h1 className="mt-2 font-display text-4xl text-cream sm:text-5xl">{movie.title}</h1>
 
             <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-dust">
               <span>★ {movie.voteAverage?.toFixed(1) ?? '—'}</span>
@@ -121,9 +242,7 @@ export default function MovieDetail() {
               </div>
             )}
 
-            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-cream/90">
-              {movie.overview}
-            </p>
+            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-cream/90">{movie.overview}</p>
 
             {movie.trailer && (
               <a
@@ -136,33 +255,33 @@ export default function MovieDetail() {
               </a>
             )}
 
+            {/* Ações da Biblioteca */}
             <div className="mt-6 flex flex-wrap items-center gap-3">
               {user ? (
                 <>
                   <button
                     type="button"
                     disabled={savingStatus === 'WATCHLIST'}
-                    onClick={() => handleAddToLibrary('WATCHLIST')}
-                    className={`rounded-full px-4 py-2 text-sm font-medium ${
+                    onClick={handleAddToWatchlist}
+                    className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
                       libraryEntry?.status === 'WATCHLIST'
                         ? 'bg-marquee-gold text-cinema-black'
                         : 'border border-marquee-gold text-marquee-gold hover:bg-marquee-gold hover:text-cinema-black'
                     }`}
                   >
-                    Quero assistir
+                    {savingStatus === 'WATCHLIST' ? 'Salvando...' : 'Quero assistir'}
                   </button>
 
                   <button
                     type="button"
-                    disabled={savingStatus === 'WATCHED'}
-                    onClick={() => handleAddToLibrary('WATCHED')}
-                    className={`rounded-full px-4 py-2 text-sm font-medium ${
+                    onClick={handleOpenWatchedModal}
+                    className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
                       libraryEntry?.status === 'WATCHED'
                         ? 'bg-velvet text-cream'
                         : 'border border-velvet text-velvet hover:bg-velvet hover:text-cream'
                     }`}
                   >
-                    Já assisti
+                    {libraryEntry?.status === 'WATCHED' ? '✓ Já assistido (Editar)' : 'Já assisti'}
                   </button>
                 </>
               ) : (
@@ -175,11 +294,90 @@ export default function MovieDetail() {
               )}
             </div>
 
+            {/* Dados Salvos pelo Usuário */}
+            {libraryEntry?.status === 'WATCHED' && (
+              <div className="mt-3 flex items-center gap-4 text-xs text-dust">
+                {savedDate && (
+                  <span>
+                    📅 Assistido em:{' '}
+                    {new Date(savedDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+                  </span>
+                )}
+                {libraryEntry.rating !== undefined && libraryEntry.rating !== null && (
+                  <span>★ Sua nota: {libraryEntry.rating}/10</span>
+                )}
+              </div>
+            )}
+
             {feedback && <p className="mt-3 text-sm text-dust">{feedback}</p>}
           </div>
         </div>
       </section>
 
+      {/* Modal de Avaliação de Filme Assistido */}
+      {isWatchedModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4">
+          <form
+            onSubmit={handleSaveWatched}
+            className="w-full max-w-md rounded-xl border border-cinema-surface-2 bg-cinema-surface p-6 shadow-2xl"
+          >
+            <h3 className="font-display text-xl text-marquee-gold">Registrar Assistido</h3>
+            <p className="mt-1 text-xs text-dust">
+              Informe a data em que assistiu e atribua sua nota (0 a 10) para {movie.title}.
+            </p>
+
+            <div className="mt-4 flex flex-col gap-4">
+              <label className="flex flex-col gap-1 text-sm text-cream">
+                Data em que assistiu:
+                <input
+                  type="date"
+                  required
+                  value={watchedDate}
+                  onChange={(e) => setWatchedDate(e.target.value)}
+                  className="rounded-lg border border-cinema-surface-2 bg-cinema-black px-3 py-2 text-cream outline-none focus:border-marquee-gold"
+                />
+              </label>
+
+              <label className="flex flex-col gap-1 text-sm text-cream">
+                Sua nota (0 a 10):
+                <div className="flex items-center gap-3">
+                  <input
+                    type="range"
+                    min="0"
+                    max="10"
+                    step="0.5"
+                    value={rating}
+                    onChange={(e) => setRating(Number(e.target.value))}
+                    className="h-2 w-full cursor-pointer accent-marquee-gold"
+                  />
+                  <span className="w-8 text-right font-display text-lg font-bold text-marquee-gold">
+                    {rating}
+                  </span>
+                </div>
+              </label>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setIsWatchedModalOpen(false)}
+                className="rounded-full px-4 py-2 text-xs text-dust hover:text-cream"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={savingStatus === 'WATCHED'}
+                className="rounded-full bg-marquee-gold px-5 py-2 text-xs font-semibold text-cinema-black hover:bg-yellow-400"
+              >
+                {savingStatus === 'WATCHED' ? 'Salvando...' : 'Salvar Avaliação'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Elenco */}
       {movie.cast?.length > 0 && (
         <section className="mx-auto max-w-6xl px-6 py-8">
           <h2 className="font-display text-2xl text-cream">Elenco</h2>
@@ -205,11 +403,10 @@ export default function MovieDetail() {
         </section>
       )}
 
+      {/* Recomendações */}
       {recommendations.length > 0 && (
         <section className="mx-auto max-w-6xl px-6 py-8">
-          <h2 className="font-display text-2xl text-cream">
-            Filmes semelhantes
-          </h2>
+          <h2 className="font-display text-2xl text-cream">Filmes semelhantes</h2>
           <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
             {recommendations.map((rec) => (
               <MovieCard key={rec.id} movie={rec} />

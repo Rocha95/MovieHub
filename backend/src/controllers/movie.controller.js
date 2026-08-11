@@ -1,70 +1,82 @@
 const MovieService = require('../services/movie.service');
 
 class MovieController {
+  /**
+   * Helper genérico para execução segura de handlers e repasse de erros ao middleware.
+   */
+  handleRequest = async (res, next, callback, statusCode = 200) => {
+    try {
+      const result = await callback();
+      return res.status(statusCode).json(result);
+    } catch (error) {
+      return next(error);
+    }
+  };
 
-    handleRequest = async (res, next, callback) => {
-        try {
-            const result = await callback();
-            return res.json(result);
-        } catch (error) {
-            next(error);
-        }
-    };
+  search = async (req, res, next) => {
+    const { query } = req.query;
 
-    search = async (req, res, next) => {
-        return this.handleRequest(res, next, () => 
-            MovieService.search(req.query.query)
-        );
-    };
+    if (!query || !query.trim()) {
+      return res.status(400).json({
+        message: 'O parâmetro de busca "query" é obrigatório.',
+      });
+    }
 
-    getById = async (req, res, next) => {
-        return this.handleRequest(res, next, () =>
-            MovieService.getById(req.params.id)
-        );
-    };
+    return this.handleRequest(res, next, () =>
+      MovieService.search(query.trim())
+    );
+  };
 
-    getPopular = async (req, res, next) => {
-        return this.handleRequest(res, next, () =>
-            MovieService.getPopular()
-        );
-    };
+  getById = async (req, res, next) => {
+    const { id } = req.params;
+    return this.handleRequest(res, next, () =>
+      MovieService.getById(id)
+    );
+  };
 
-    getTopRated = async (req, res, next) => {
-        return this.handleRequest(res, next, () =>
-            MovieService.getTopRated()
-        );
-    };
+  getPopular = async (req, res, next) => {
+    return this.handleRequest(res, next, () =>
+      MovieService.getPopular()
+    );
+  };
 
-    getUpcoming = async (req, res, next) => {
-        return this.handleRequest(res, next, () =>
-            MovieService.getUpcoming()
-        );
-    };
+  getTopRated = async (req, res, next) => {
+    return this.handleRequest(res, next, () =>
+      MovieService.getTopRated()
+    );
+  };
 
-    getNowPlaying = async (req, res, next) => {
-        return this.handleRequest(res, next, () =>
-            MovieService.getNowPlaying()
-        );
-    };
+  getUpcoming = async (req, res, next) => {
+    return this.handleRequest(res, next, () =>
+      MovieService.getUpcoming()
+    );
+  };
 
-    getRecommendations = async (req, res, next) => {
-        return this.handleRequest(res, next, () =>
-            MovieService.getRecommendations(req.params.id)
-        );
-    };
+  getNowPlaying = async (req, res, next) => {
+    return this.handleRequest(res, next, () =>
+      MovieService.getNowPlaying()
+    );
+  };
 
-    getBoxOffice = async (req, res, next) => {
-        return this.handleRequest(res, next, () =>
-            MovieService.getBoxOffice(req.params.id)
-        );
-    };
+  getRecommendations = async (req, res, next) => {
+    const { id } = req.params;
+    return this.handleRequest(res, next, () =>
+      MovieService.getRecommendations(id)
+    );
+  };
 
-    getBoxOfficeChart = async (req, res, next) => {
-        return this.handleRequest(res, next, () =>
-            MovieService.getBoxOfficeChart()
-        );
-    };
+  getBoxOffice = async (req, res, next) => {
+    const { id } = req.params;
+    return this.handleRequest(res, next, () =>
+      MovieService.getBoxOffice(id)
+    );
+  };
 
+  getBoxOfficeChart = async (req, res, next) => {
+    return this.handleRequest(res, next, () =>
+      MovieService.getBoxOfficeChart()
+    );
+  };
 }
 
 module.exports = new MovieController();

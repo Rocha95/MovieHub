@@ -30,7 +30,7 @@ model UserMovie {
 
   favorite  Boolean  @default(false)
 
-  rating    Int?
+  rating    Float?
 
   notes     String?
 

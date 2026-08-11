@@ -1,190 +1,222 @@
 const prisma = require('../config/prisma');
-const MovieService = require('./movie.service');
 
 class LibraryService {
+  /**
+   * Helper privado para buscar os detalhes do filme diretamente da API do TMDB
+   */
+  async #fetchTmdbMovie(movieId) {
+    try {
+      const token = process.env.TMDB_READ_TOKEN || process.env.TMDB_TOKEN;
+      const apiKey = process.env.TMDB_API_KEY;
 
-    async addMovie(userId, data) {
-        // Trata a data enviada (se enviada) ou aplica a data atual caso o status seja WATCHED
-        const watchedAt = data.watchedAt 
-            ? new Date(data.watchedAt) 
-            : (data.status === 'WATCHED' ? new Date() : null);
+      let url = `https://api.themoviedb.org/3/movie/${movieId}?language=pt-BR`;
+      const headers = { accept: 'application/json' };
 
-        const movie = await prisma.userMovie.upsert({
-            where: {
-                userId_movieId: {
-                    userId,
-                    movieId: data.movieId
-                }
-            },
-            update: {
-                status: data.status,
-                ...(data.watchedAt !== undefined && { watchedAt: new Date(data.watchedAt) })
-            },
-            create: {
-                userId,
-                movieId: data.movieId,
-                status: data.status,
-                watchedAt
-            }
-        });
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      } else if (apiKey) {
+        url += `&api_key=${apiKey}`;
+      } else {
+        console.warn('[LibraryService] Nenhuma chave/token do TMDB configurado nas variáveis de ambiente.');
+        return null;
+      }
 
-        return movie;
+      const response = await fetch(url, { headers });
+
+      if (!response.ok) return null;
+      return await response.json();
+    } catch (error) {
+      console.error(`[LibraryService] Erro ao buscar filme ${movieId} no TMDB:`, error.message);
+      return null;
     }
+  }
 
-    async updateMovie(userId, movieId, data) {
-        const existing = await prisma.userMovie.findUnique({
-            where: {
-                userId_movieId: {
-                    userId,
-                    movieId
-                }
-            }
-        });
+  /**
+   * Helper privado para converter e sanitizar a data
+   */
+  #parseDate(value) {
+    if (!value) return null;
+    if (value instanceof Date) return value;
 
-        if (!existing) {
-            throw new Error('Filme não encontrado na sua biblioteca.');
-        }
+    const parsed = new Date(value);
+    return isNaN(parsed.getTime()) ? null : parsed;
+  }
 
-        // Se uma nova data for enviada em data.watchedAt, converte para objeto Date do JS
-        const updateData = { ...data };
-        if (data.watchedAt) {
-            updateData.watchedAt = new Date(data.watchedAt);
-        }
+  /**
+   * Helper privado para converter e sanitizar o rating (Float de 0 a 10)
+   */
+  #parseRating(value) {
+    if (value === null || value === undefined || value === '') return null;
+    const num = Number(value);
+    if (isNaN(num)) return null;
+    return Math.min(Math.max(num, 0), 10);
+  }
 
-        const movie = await prisma.userMovie.update({
-            where: {
-                userId_movieId: {
-                    userId,
-                    movieId
-                }
-            },
-            data: updateData
-        });
+  /**
+   * Adiciona ou atualiza (Upsert) um filme na biblioteca do usuário.
+   */
+  async addMovie(data = {}) {
+    const { userId, movieId, status, watchedAt, watchedDate, rating, score } = data;
 
-        return movie;
-    }
+    const parsedUserId = Number(userId);
+    const parsedMovieId = Number(movieId);
+    const normalizedStatus = status ? String(status).trim().toUpperCase() : 'WATCHLIST';
+    const isWatched = normalizedStatus === 'WATCHED';
 
-    async removeMovie(userId, movieId) {
-        const existing = await prisma.userMovie.findUnique({
-            where: {
-                userId_movieId: {
-                    userId,
-                    movieId
-                }
-            }
-        });
+    const rawDate = watchedAt || watchedDate;
+    const rawRating = rating !== undefined && rating !== null ? rating : score;
 
-        if (!existing) {
-            throw new Error('Filme não encontrado na sua biblioteca.');
-        }
+    const finalWatchedAt = isWatched ? this.#parseDate(rawDate) : null;
+    const finalRating = isWatched ? this.#parseRating(rawRating) : null;
 
-        await prisma.userMovie.delete({
-            where: {
-                userId_movieId: {
-                    userId,
-                    movieId
-                }
-            }
-        });
-    }
+    const payloadData = {
+      userId: parsedUserId,
+      movieId: parsedMovieId,
+      status: normalizedStatus,
+      watchedAt: finalWatchedAt,
+      rating: finalRating,
+    };
 
-    async getLibrary(userId) {
-        const library = await prisma.userMovie.findMany({
-            where: {
-                userId
-            },
-            orderBy: {
-                createdAt: 'desc'
-            }
-        });
+    return prisma.userMovie.upsert({
+      where: {
+        userId_movieId: {
+          userId: parsedUserId,
+          movieId: parsedMovieId,
+        },
+      },
+      update: {
+        status: payloadData.status,
+        watchedAt: payloadData.watchedAt,
+        rating: payloadData.rating,
+      },
+      create: payloadData,
+    });
+  }
 
-        const movies = await Promise.all(
-            library.map(async (item) => {
-                const movie = await MovieService.getById(
-                    item.movieId
-                );
+  /**
+   * Retorna os filmes salvos na biblioteca do usuário enriquecidos com metadados do TMDB (Poster, Título, Ano).
+   */
+  async getLibrary(userId) {
+    const userMovies = await prisma.userMovie.findMany({
+      where: {
+        userId: Number(userId),
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+    });
 
-                return {
-                    movieId: item.movieId,
-                    title: movie.title,
-                    poster: movie.poster,
-                    releaseDate: movie.releaseDate,
-                    voteAverage: movie.voteAverage,
-                    status: item.status,
-                    favorite: item.favorite,
-                    rating: item.rating,
-                    notes: item.notes,
-                    watchedAt: item.watchedAt, // Retorna a data em que o filme foi assistido
-                    addedAt: item.createdAt
-                };
-            })
-        );
+    if (!userMovies.length) return [];
 
-        return movies;
-    }
+    const enrichedMovies = await Promise.all(
+      userMovies.map(async (item) => {
+        const movieDetails = await this.#fetchTmdbMovie(item.movieId);
 
-    async getStats(userId) {
-        const library = await prisma.userMovie.findMany({
-            where: {
-                userId
-            }
-        });
-
-        const watchedCount = library.filter(
-            item => item.status === 'WATCHED'
-        ).length;
-
-        const watchlistCount = library.filter(
-            item => item.status === 'WATCHLIST'
-        ).length;
-
-        const favoritesCount = library.filter(
-            item => item.favorite
-        ).length;
-
-        const ratedItems = library.filter(
-            item => item.rating !== null && item.rating !== undefined
-        );
-
-        const averageRating = ratedItems.length
-            ? Number(
-                (
-                    ratedItems.reduce((sum, item) => sum + item.rating, 0) /
-                    ratedItems.length
-                ).toFixed(1)
-            )
-            : null;
-
-        const genreCount = {};
-
-        await Promise.all(
-            library.map(async (item) => {
-                try {
-                    const movie = await MovieService.getById(item.movieId);
-                    movie.genres.forEach((genre) => {
-                        genreCount[genre.name] = (genreCount[genre.name] || 0) + 1;
-                    });
-                } catch (error) {
-                    // ignora filmes que falharem ao buscar detalhes
-                }
-            })
-        );
-
-        const topGenres = Object.entries(genreCount)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 5)
-            .map(([name, count]) => ({ name, count }));
+        const posterPath = movieDetails?.poster_path;
+        const fullPosterUrl = posterPath
+          ? `https://image.tmdb.org/t/p/w500${posterPath}`
+          : null;
 
         return {
-            totalMovies: library.length,
-            watchedCount,
-            watchlistCount,
-            favoritesCount,
-            averageRating,
-            ratedCount: ratedItems.length,
-            topGenres
+          ...item,
+          title: movieDetails?.title || `Filme #${item.movieId}`,
+          releaseDate: movieDetails?.release_date || null,
+          poster: fullPosterUrl,
         };
+      })
+    );
+
+    return enrichedMovies;
+  }
+
+  /**
+   * Estatísticas de filmes assistidos e na lista de desejos.
+   */
+  async getStats(userId) {
+    const counts = await prisma.userMovie.groupBy({
+      by: ['status'],
+      where: {
+        userId: Number(userId),
+      },
+      _count: {
+        _all: true,
+      },
+    });
+
+    const statsMap = counts.reduce((acc, group) => {
+      acc[group.status] = group._count._all;
+      return acc;
+    }, {});
+
+    const watchedCount = statsMap['WATCHED'] || 0;
+    const watchlistCount = statsMap['WATCHLIST'] || 0;
+
+    return {
+      total: watchedCount + watchlistCount,
+      watchedCount,
+      watchlistCount,
+    };
+  }
+
+  /**
+   * Atualiza registro específico no banco.
+   */
+  async updateMovie(data = {}) {
+    const { userId, movieId, status, watchedAt, watchedDate, rating, score, favorite } = data;
+
+    const parsedUserId = Number(userId);
+    const parsedMovieId = Number(movieId);
+
+    const updateData = {};
+
+    if (favorite !== undefined) {
+      updateData.favorite = Boolean(favorite);
     }
+
+    if (status !== undefined) {
+      const normalizedStatus = String(status).trim().toUpperCase();
+      updateData.status = normalizedStatus;
+
+      if (normalizedStatus === 'WATCHLIST') {
+        updateData.watchedAt = null;
+        updateData.rating = null;
+      }
+    }
+
+    if (updateData.status !== 'WATCHLIST') {
+      const rawDate = watchedAt || watchedDate;
+      const rawRating = rating !== undefined && rating !== null ? rating : score;
+
+      if (rawDate !== undefined) {
+        updateData.watchedAt = this.#parseDate(rawDate);
+      }
+      if (rawRating !== undefined) {
+        updateData.rating = this.#parseRating(rawRating);
+      }
+    }
+
+    return prisma.userMovie.update({
+      where: {
+        userId_movieId: {
+          userId: parsedUserId,
+          movieId: parsedMovieId,
+        },
+      },
+      data: updateData,
+    });
+  }
+
+  /**
+   * Remove um filme da biblioteca.
+   */
+  async removeMovie(userId, movieId) {
+    return prisma.userMovie.deleteMany({
+      where: {
+        userId: Number(userId),
+        movieId: Number(movieId),
+      },
+    });
+  }
 }
 
 module.exports = new LibraryService();

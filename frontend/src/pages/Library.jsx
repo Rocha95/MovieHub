@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/client'
 
 const STATUS_LABEL = {
@@ -30,6 +30,9 @@ function StarRating({ value, onChange }) {
 export default function Library() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  
+  const navigate = useNavigate()
 
   useEffect(() => {
     loadLibrary()
@@ -37,9 +40,20 @@ export default function Library() {
 
   function loadLibrary() {
     setLoading(true)
+    setError(null)
+
     api
       .get('/library')
       .then((res) => setItems(res.data))
+      .catch((err) => {
+        if (err.response?.status === 401) {
+          // Token inválido/inexistente: limpa a sessão e redireciona
+          localStorage.removeItem('token')
+          navigate('/login')
+          return
+        }
+        setError('Não foi possível carregar sua biblioteca. Tente novamente.')
+      })
       .finally(() => setLoading(false))
   }
 
@@ -52,19 +66,49 @@ export default function Library() {
   }
 
   async function toggleFavorite(item) {
-    const favorite = !item.favorite
+    const previousFavorite = item.favorite
+    const favorite = !previousFavorite
+    
+    // Atualização otimista
     updateLocalItem(item.movieId, { favorite })
-    await api.patch(`/library/${item.movieId}`, { favorite })
+
+    try {
+      await api.patch(`/library/${item.movieId}`, { favorite })
+    } catch (err) {
+      // Rollback se a API falhar
+      updateLocalItem(item.movieId, { favorite: previousFavorite })
+      if (err.response?.status === 401) navigate('/login')
+    }
   }
 
   async function setRating(item, rating) {
+    const previousRating = item.rating
+    
+    // Atualização otimista
     updateLocalItem(item.movieId, { rating })
-    await api.patch(`/library/${item.movieId}`, { rating })
+
+    try {
+      await api.patch(`/library/${item.movieId}`, { rating })
+    } catch (err) {
+      // Rollback se a API falhar
+      updateLocalItem(item.movieId, { rating: previousRating })
+      if (err.response?.status === 401) navigate('/login')
+    }
   }
 
   async function removeItem(item) {
+    const previousItems = [...items]
+    
+    // Atualização otimista
     setItems((prev) => prev.filter((i) => i.movieId !== item.movieId))
-    await api.delete(`/library/${item.movieId}`)
+
+    try {
+      await api.delete(`/library/${item.movieId}`)
+    } catch (err) {
+      // Rollback se a API falhar
+      setItems(previousItems)
+      if (err.response?.status === 401) navigate('/login')
+    }
   }
 
   return (
@@ -75,7 +119,11 @@ export default function Library() {
 
       {loading && <p className="mt-6 text-sm text-dust">Carregando...</p>}
 
-      {!loading && items.length === 0 && (
+      {error && !loading && (
+        <p className="mt-6 text-sm text-red-400">{error}</p>
+      )}
+
+      {!loading && !error && items.length === 0 && (
         <p className="mt-6 text-sm text-dust">
           Sua biblioteca está vazia. Busque um filme e adicione à sua lista.
         </p>
