@@ -1,7 +1,5 @@
 const express = require('express');
-
 const MovieController = require('../controllers/movie.controller');
-
 const validate = require('../middlewares/validate.middleware');
 
 const {
@@ -11,37 +9,20 @@ const {
 
 const router = express.Router();
 
+// Buscas e Listagens
 router.get(
     '/search',
     validate(searchMovieSchema, 'query'),
     MovieController.search
 );
 
-router.get(
-    '/popular',
-    MovieController.getPopular
-);
+router.get('/popular', MovieController.getPopular);
+router.get('/top-rated', MovieController.getTopRated);
+router.get('/upcoming', MovieController.getUpcoming);
+router.get('/now-playing', MovieController.getNowPlaying);
+router.get('/bilheteria', MovieController.getBoxOfficeChart);
 
-router.get(
-    '/top-rated',
-    MovieController.getTopRated
-);
-
-router.get(
-    '/upcoming',
-    MovieController.getUpcoming
-);
-
-router.get(
-    '/now-playing',
-    MovieController.getNowPlaying
-);
-
-router.get(
-    '/bilheteria',
-    MovieController.getBoxOfficeChart
-);
-
+// Detalhes e Recursos por ID
 router.get(
     '/:id/recommendations',
     validate(movieIdSchema, 'params'),
@@ -52,6 +33,12 @@ router.get(
     '/:id/boxoffice',
     validate(movieIdSchema, 'params'),
     MovieController.getBoxOffice
+);
+
+router.get(
+    '/:id/providers',
+    validate(movieIdSchema, 'params'),
+    MovieController.getProviders
 );
 
 router.get(

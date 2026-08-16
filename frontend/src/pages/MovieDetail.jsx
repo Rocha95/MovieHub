@@ -12,6 +12,7 @@ export default function MovieDetail() {
   const [movie, setMovie] = useState(null)
   const [recommendations, setRecommendations] = useState([])
   const [boxOffice, setBoxOffice] = useState(null)
+  const [providers, setProviders] = useState(null) // Onde assistir (JustWatch)
   const [libraryEntry, setLibraryEntry] = useState(null)
 
   // Estados de feedback e UI
@@ -30,13 +31,15 @@ export default function MovieDetail() {
     setLoading(true)
     setMovie(null)
     setFeedback(null)
+    setProviders(null)
 
     const fetchMovieData = async () => {
       try {
-        const [movieRes, recsRes, boxOfficeRes] = await Promise.all([
+        const [movieRes, recsRes, boxOfficeRes, providersRes] = await Promise.all([
           api.get(`/movies/${id}`),
           api.get(`/movies/${id}/recommendations`).catch(() => ({ data: [] })),
           api.get(`/movies/${id}/boxoffice`).catch(() => ({ data: { available: false } })),
+          api.get(`/movies/${id}/providers`).catch(() => ({ data: null })),
         ])
 
         if (!isMounted) return
@@ -44,6 +47,10 @@ export default function MovieDetail() {
         setMovie(movieRes.data)
         setRecommendations(recsRes.data)
         setBoxOffice(boxOfficeRes.data)
+        
+        // Pega as opções do Brasil ('BR')
+        const brProviders = providersRes.data?.results?.BR || providersRes.data?.BR || null
+        setProviders(brProviders)
       } catch (err) {
         if (isMounted) setFeedback('Erro ao carregar detalhes do filme.')
       } finally {
@@ -203,7 +210,7 @@ export default function MovieDetail() {
             />
           )}
 
-          <div>
+          <div className="flex-1">
             {movie.tagline && (
               <p className="font-display tracking-[0.3em] text-marquee-gold">
                 {movie.tagline.toUpperCase()}
@@ -243,6 +250,81 @@ export default function MovieDetail() {
             )}
 
             <p className="mt-4 max-w-2xl text-sm leading-relaxed text-cream/90">{movie.overview}</p>
+
+            {/* SEÇÃO: Onde Assistir (JustWatch Brasil) */}
+            {providers && (providers.flatrate?.length > 0 || providers.rent?.length > 0 || providers.buy?.length > 0) && (
+              <div className="mt-6 rounded-xl border border-cinema-surface-2 bg-cinema-surface/80 p-4 max-w-2xl">
+                <div className="flex items-center justify-between pb-2 border-b border-cinema-surface-2">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-cream">
+                    Onde Assistir no Brasil
+                  </span>
+                  <a
+                    href={providers.link}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[10px] text-dust hover:text-marquee-gold transition-colors"
+                  >
+                    Oferecido por JustWatch ↗
+                  </a>
+                </div>
+
+                <div className="mt-3 flex flex-col gap-3">
+                  {/* Streaming (Assinatura) */}
+                  {providers.flatrate?.length > 0 && (
+                    <div className="flex items-center gap-3">
+                      <span className="w-20 text-xs font-medium text-dust">Streaming:</span>
+                      <div className="flex flex-wrap gap-2">
+                        {providers.flatrate.map((provider) => (
+                          <div key={provider.provider_id} className="group relative" title={provider.provider_name}>
+                            <img
+                              src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
+                              alt={provider.provider_name}
+                              className="h-8 w-8 rounded-lg object-cover shadow border border-cinema-surface-2"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Aluguel */}
+                  {providers.rent?.length > 0 && (
+                    <div className="flex items-center gap-3">
+                      <span className="w-20 text-xs font-medium text-dust">Alugar:</span>
+                      <div className="flex flex-wrap gap-2">
+                        {providers.rent.map((provider) => (
+                          <div key={provider.provider_id} className="group relative" title={provider.provider_name}>
+                            <img
+                              src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
+                              alt={provider.provider_name}
+                              className="h-8 w-8 rounded-lg object-cover shadow border border-cinema-surface-2 opacity-80"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Comprar */}
+                  {providers.buy?.length > 0 && !providers.flatrate?.length && (
+                    <div className="flex items-center gap-3">
+                      <span className="w-20 text-xs font-medium text-dust">Comprar:</span>
+                      <div className="flex flex-wrap gap-2">
+                        {providers.buy.map((provider) => (
+                          <div key={provider.provider_id} className="group relative" title={provider.provider_name}>
+                            <img
+                              src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
+                              alt={provider.provider_name}
+                              className="h-8 w-8 rounded-lg object-cover shadow border border-cinema-surface-2 opacity-80"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {movie.trailer && (
               <a

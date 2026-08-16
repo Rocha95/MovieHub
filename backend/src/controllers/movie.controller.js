@@ -77,6 +77,13 @@ class MovieController {
       MovieService.getBoxOfficeChart()
     );
   };
+
+  getProviders = async (req, res, next) => {
+    const { id } = req.params;
+    return this.handleRequest(res, next, () =>
+      MovieService.getProviders(id)
+    );
+  };
 }
 
 module.exports = new MovieController();

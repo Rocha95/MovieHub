@@ -39,7 +39,6 @@ class MovieService {
             const response = await tmdbClient.get(endpoint);
             return MovieMapper.mapSearchMovies(response.data.results);
         } catch (error) {
-            // LOG DE DIAGNÓSTICO ADICIONADO AQUI:
             console.error('❌ Erro no TMDB (fetchMovieList):');
             if (error.response) {
                 console.error('  Status HTTP:', error.response.status);
@@ -70,6 +69,18 @@ class MovieService {
 
     async getRecommendations(id) {
         return this.fetchMovieList(`/movie/${id}/recommendations`);
+    }
+
+    async getProviders(id) {
+        try {
+            const response = await tmdbClient.get(`/movie/${id}/watch/providers`);
+            
+            // Retorna os dados agrupados por região (ex: response.data.results.BR)
+            return response.data.results || {};
+        } catch (error) {
+            console.error('❌ Erro no TMDB (getProviders):', error.response?.data || error.message);
+            throw new Error('Erro ao buscar provedores do filme.');
+        }
     }
 
     async getBoxOffice(id) {
@@ -126,8 +137,6 @@ class MovieService {
             throw new Error('Erro ao montar o ranking de bilheteria.');
         }
     }
-
-    
 }
 
 module.exports = new MovieService();
