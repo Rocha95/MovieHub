@@ -8,10 +8,11 @@ import Register from './pages/Register'
 import MovieDetail from './pages/MovieDetail'
 import Library from './pages/Library'
 import BoxOffice from './pages/BoxOffice'
-import AllTimeBoxOffice from './pages/AllTimeBoxOffice' // Importe o componente de bilheterias de todos os tempos
+import AllTimeBoxOffice from './pages/AllTimeBoxOffice'
 import Dashboard from './pages/Dashboard'
 import Suggestions from './pages/Suggestions'
 import NearbySessions from './pages/NearbySessions'
+import Listas from './pages/Listas'
 
 function App() {
   return (
@@ -47,6 +48,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Library />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/listas"
+            element={
+              <ProtectedRoute>
+                <Listas />
               </ProtectedRoute>
             }
           />

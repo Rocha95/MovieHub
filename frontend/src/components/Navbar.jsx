@@ -94,7 +94,7 @@ export default function Navbar() {
             Início
           </Link>
 
-          {/* LOGADO: Exibe Sessões, Bilheteria, Sugestões, Minha Biblioteca, Dashboard e Sair */}
+          {/* LOGADO: Exibe Sessões, Bilheteria, Sugestões, Minha Biblioteca, Listas, Dashboard e Sair */}
           {isAuthenticated ? (
             <>
               <Link to="/sessoes" className="text-cream hover:text-marquee-gold transition-colors text-sm font-medium whitespace-nowrap">
@@ -161,6 +161,15 @@ export default function Navbar() {
 
               <Link to="/biblioteca" className="text-cream hover:text-marquee-gold transition-colors text-sm font-medium whitespace-nowrap">
                 Minha Biblioteca
+              </Link>
+
+              {/* Ícone e Rota das Listas */}
+              <Link 
+                to="/listas" 
+                className="flex items-center gap-1.5 text-cream hover:text-marquee-gold transition-colors text-sm font-medium whitespace-nowrap"
+              >
+               
+                <span>Listas</span>
               </Link>
 
               <Link to="/dashboard" className="text-cream hover:text-marquee-gold transition-colors text-sm font-medium whitespace-nowrap">
