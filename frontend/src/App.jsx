@@ -13,6 +13,7 @@ import Dashboard from './pages/Dashboard'
 import Suggestions from './pages/Suggestions'
 import NearbySessions from './pages/NearbySessions'
 import Listas from './pages/Listas'
+import ListaDetalhes from './pages/ListDetails' // Import do componente de detalhes da lista
 
 function App() {
   return (
@@ -56,6 +57,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <Listas />
+              </ProtectedRoute>
+            }
+          />
+          {/* Nova Rota para visualizar os detalhes e filmes de uma lista específica */}
+          <Route
+            path="/listas/:id"
+            element={
+              <ProtectedRoute>
+                <ListaDetalhes />
               </ProtectedRoute>
             }
           />

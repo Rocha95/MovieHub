@@ -12,7 +12,7 @@ export default function MovieDetail() {
   const [movie, setMovie] = useState(null)
   const [recommendations, setRecommendations] = useState([])
   const [boxOffice, setBoxOffice] = useState(null)
-  const [providers, setProviders] = useState(null) // Onde assistir (JustWatch)
+  const [providers, setProviders] = useState(null)
   const [libraryEntry, setLibraryEntry] = useState(null)
 
   // Estados de feedback e UI
@@ -24,6 +24,14 @@ export default function MovieDetail() {
   const [isWatchedModalOpen, setIsWatchedModalOpen] = useState(false)
   const [watchedDate, setWatchedDate] = useState(() => new Date().toISOString().split('T')[0])
   const [rating, setRating] = useState(10)
+
+  // Estados do Modal "Adicionar à Lista"
+  const [isListModalOpen, setIsListModalOpen] = useState(false)
+  const [userLists, setUserLists] = useState([])
+  const [selectedListId, setSelectedListId] = useState('')
+  const [loadingLists, setLoadingLists] = useState(false)
+  const [addingToList, setAddingToList] = useState(false)
+  const [listFeedback, setListFeedback] = useState(null)
 
   // Carregamento dos dados do filme
   useEffect(() => {
@@ -48,7 +56,6 @@ export default function MovieDetail() {
         setRecommendations(recsRes.data)
         setBoxOffice(boxOfficeRes.data)
         
-        // Pega as opções do Brasil ('BR')
         const brProviders = providersRes.data?.results?.BR || providersRes.data?.BR || null
         setProviders(brProviders)
       } catch (err) {
@@ -90,7 +97,7 @@ export default function MovieDetail() {
     }
   }, [id, user])
 
-  // Ação: Abrir modal e preencher os dados atuais
+  // Ação: Abrir modal de Já Assisti
   function handleOpenWatchedModal() {
     setFeedback(null)
 
@@ -112,6 +119,54 @@ export default function MovieDetail() {
     setWatchedDate(initialDate)
     setRating(initialRating)
     setIsWatchedModalOpen(true)
+  }
+
+  // Ação: Abrir modal e buscar as listas personalizadas do usuário
+  async function handleOpenListModal() {
+    setListFeedback(null)
+    setIsListModalOpen(true)
+    setLoadingLists(true)
+
+    try {
+      const response = await api.get('/lists')
+      const listsData = Array.isArray(response.data) ? response.data : response.data?.listas || []
+      setUserLists(listsData)
+
+      if (listsData.length > 0) {
+        // Trata a chave primária aceitando id (Prisma/SQL) ou _id (MongoDB)
+        const firstId = listsData[0].id || listsData[0]._id
+        setSelectedListId(String(firstId))
+      }
+    } catch (err) {
+      setListFeedback('Erro ao carregar suas listas.')
+    } finally {
+      setLoadingLists(false)
+    }
+  }
+
+  // Ação: Adicionar o filme na lista selecionada
+  async function handleAddMovieToList(e) {
+    e.preventDefault()
+    if (!selectedListId) return
+
+    setAddingToList(true)
+    setListFeedback(null)
+
+    try {
+      await api.post(`/lists/${selectedListId}/movies`, {
+        movieId: Number(id),
+      })
+
+      setListFeedback('Filme adicionado à lista com sucesso!')
+      setTimeout(() => {
+        setIsListModalOpen(false)
+        setListFeedback(null)
+      }, 1500)
+    } catch (err) {
+      setListFeedback(err.response?.data?.message || 'Erro ao adicionar filme à lista. Verifique a rota no servidor.')
+    } finally {
+      setAddingToList(false)
+    }
   }
 
   // Ação: Adicionar à lista "Quero Assistir"
@@ -139,7 +194,7 @@ export default function MovieDetail() {
     }
   }
 
-  // Ação: Salvar/Confirmar filme assistido
+  // Ação: Salvar filme assistido
   async function handleSaveWatched(e) {
     if (e) {
       e.preventDefault()
@@ -163,17 +218,12 @@ export default function MovieDetail() {
         score: finalRating,
       }
 
-      const response = await api.post('/library', payload, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
+      const response = await api.post('/library', payload)
 
       setLibraryEntry(response.data || payload)
       setFeedback('Marcado como assistido com sucesso!')
       setIsWatchedModalOpen(false)
     } catch (error) {
-      console.error('>>> Erro ao salvar filme assistido:', error.response?.data || error.message)
       setFeedback(error.response?.data?.message || 'Erro ao salvar no servidor.')
     } finally {
       setSavingStatus(null)
@@ -251,7 +301,7 @@ export default function MovieDetail() {
 
             <p className="mt-4 max-w-2xl text-sm leading-relaxed text-cream/90">{movie.overview}</p>
 
-            {/* SEÇÃO: Onde Assistir (JustWatch Brasil) */}
+            {/* Onde Assistir */}
             {providers && (providers.flatrate?.length > 0 || providers.rent?.length > 0 || providers.buy?.length > 0) && (
               <div className="mt-6 rounded-xl border border-cinema-surface-2 bg-cinema-surface/80 p-4 max-w-2xl">
                 <div className="flex items-center justify-between pb-2 border-b border-cinema-surface-2">
@@ -269,53 +319,16 @@ export default function MovieDetail() {
                 </div>
 
                 <div className="mt-3 flex flex-col gap-3">
-                  {/* Streaming (Assinatura) */}
                   {providers.flatrate?.length > 0 && (
                     <div className="flex items-center gap-3">
                       <span className="w-20 text-xs font-medium text-dust">Streaming:</span>
                       <div className="flex flex-wrap gap-2">
                         {providers.flatrate.map((provider) => (
-                          <div key={provider.provider_id} className="group relative" title={provider.provider_name}>
+                          <div key={provider.provider_id} title={provider.provider_name}>
                             <img
                               src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
                               alt={provider.provider_name}
                               className="h-8 w-8 rounded-lg object-cover shadow border border-cinema-surface-2"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Aluguel */}
-                  {providers.rent?.length > 0 && (
-                    <div className="flex items-center gap-3">
-                      <span className="w-20 text-xs font-medium text-dust">Alugar:</span>
-                      <div className="flex flex-wrap gap-2">
-                        {providers.rent.map((provider) => (
-                          <div key={provider.provider_id} className="group relative" title={provider.provider_name}>
-                            <img
-                              src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
-                              alt={provider.provider_name}
-                              className="h-8 w-8 rounded-lg object-cover shadow border border-cinema-surface-2 opacity-80"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Comprar */}
-                  {providers.buy?.length > 0 && !providers.flatrate?.length && (
-                    <div className="flex items-center gap-3">
-                      <span className="w-20 text-xs font-medium text-dust">Comprar:</span>
-                      <div className="flex flex-wrap gap-2">
-                        {providers.buy.map((provider) => (
-                          <div key={provider.provider_id} className="group relative" title={provider.provider_name}>
-                            <img
-                              src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
-                              alt={provider.provider_name}
-                              className="h-8 w-8 rounded-lg object-cover shadow border border-cinema-surface-2 opacity-80"
                             />
                           </div>
                         ))}
@@ -337,7 +350,7 @@ export default function MovieDetail() {
               </a>
             )}
 
-            {/* Ações da Biblioteca */}
+            {/* Ações da Biblioteca e Listas */}
             <div className="mt-6 flex flex-wrap items-center gap-3">
               {user ? (
                 <>
@@ -364,6 +377,15 @@ export default function MovieDetail() {
                     }`}
                   >
                     {libraryEntry?.status === 'WATCHED' ? '✓ Já assistido (Editar)' : 'Já assisti'}
+                  </button>
+
+                  {/* BOTÃO: Adicionar a Lista */}
+                  <button
+                    type="button"
+                    onClick={handleOpenListModal}
+                    className="rounded-full border border-cinema-surface-2 bg-cinema-surface px-4 py-2 text-sm font-medium text-cream hover:border-marquee-gold/60 hover:text-marquee-gold transition-colors"
+                  >
+                    + Adicionar à Lista
                   </button>
                 </>
               ) : (
@@ -395,6 +417,81 @@ export default function MovieDetail() {
           </div>
         </div>
       </section>
+
+      {/* MODAL: Adicionar à Lista */}
+      {isListModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-xl border border-cinema-surface-2 bg-cinema-surface p-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-cinema-surface-2 pb-3 mb-4">
+              <h3 className="font-display text-xl text-marquee-gold">Adicionar a uma Lista</h3>
+              <button
+                type="button"
+                onClick={() => setIsListModalOpen(false)}
+                className="text-dust hover:text-cream text-lg font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            {listFeedback && (
+              <p className="mb-4 text-xs font-medium text-marquee-gold bg-marquee-gold/10 p-2.5 rounded border border-marquee-gold/20">
+                {listFeedback}
+              </p>
+            )}
+
+            {loadingLists ? (
+              <p className="py-6 text-center text-sm text-dust">Buscando suas listas...</p>
+            ) : userLists.length === 0 ? (
+              <div className="py-4 text-center">
+                <p className="text-sm text-dust">Você ainda não possui nenhuma lista criada.</p>
+                <Link
+                  to="/listas"
+                  className="mt-3 inline-block text-xs text-marquee-gold underline hover:text-yellow-400"
+                >
+                  Ir para minhas listas e criar uma
+                </Link>
+              </div>
+            ) : (
+              <form onSubmit={handleAddMovieToList} className="flex flex-col gap-4">
+                <label className="flex flex-col gap-1.5 text-sm text-cream">
+                  Selecione a lista desejada:
+                  <select
+                    value={selectedListId}
+                    onChange={(e) => setSelectedListId(e.target.value)}
+                    className="rounded-lg border border-cinema-surface-2 bg-cinema-black px-3 py-2.5 text-sm text-cream outline-none focus:border-marquee-gold"
+                  >
+                    {userLists.map((lista) => {
+                      const lId = lista.id || lista._id
+                      return (
+                        <option key={lId} value={lId}>
+                          {lista.titulo || lista.title || 'Lista sem título'}
+                        </option>
+                      )
+                    })}
+                  </select>
+                </label>
+
+                <div className="mt-4 flex items-center justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsListModalOpen(false)}
+                    className="rounded-full px-4 py-2 text-xs text-dust hover:text-cream"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={addingToList}
+                    className="rounded-full bg-marquee-gold px-5 py-2 text-xs font-semibold text-cinema-black hover:bg-yellow-400 disabled:opacity-50"
+                  >
+                    {addingToList ? 'Adicionando...' : 'Confirmar e Adicionar'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Modal de Avaliação de Filme Assistido */}
       {isWatchedModalOpen && (

@@ -8,48 +8,63 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
+  id        Int         @id @default(autoincrement())
   name      String
-  email     String   @unique
+  email     String      @unique
   password  String
-  createdAt DateTime @default(now())
+  createdAt DateTime    @default(now())
+
+  movies    UserMovie[]
+  lists     List[]      // Relacionamento com listas personalizadas
 
   @@map("users")
-  movies UserMovie[]
 }
 
 model UserMovie {
-
-  id        Int      @id @default(autoincrement())
-
+  id        Int         @id @default(autoincrement())
   userId    Int
-
   movieId   Int
-
   status    MovieStatus
-
-  favorite  Boolean  @default(false)
-
+  favorite  Boolean     @default(false)
   rating    Float?
-
   notes     String?
-
-  createdAt DateTime @default(now())
-
-  updatedAt DateTime @updatedAt
-
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
   watchedAt DateTime?
 
-  user User @relation(fields: [userId], references: [id])
+  user      User        @relation(fields: [userId], references: [id])
 
   @@unique([userId, movieId])
+}
 
+model List {
+  id        Int        @id @default(autoincrement())
+  userId    Int?
+  titulo    String
+  descricao String?
+  capaUrl   String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movies    ListItem[]
+
+  @@map("lists")
+}
+
+model ListItem {
+  id        Int      @id @default(autoincrement())
+  listId    Int
+  movieId   Int
+  createdAt DateTime @default(now())
+
+  list      List     @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  @@unique([listId, movieId])
+  @@map("list_items")
 }
 
 enum MovieStatus {
-
   WATCHLIST
-
   WATCHED
-
 }
