@@ -60,6 +60,26 @@ class LibraryService {
 
     const parsedUserId = Number(userId);
     const parsedMovieId = Number(movieId);
+
+    // Validação estrita para evitar passar NaN ou ID inválido para a FK do Prisma
+    if (!parsedUserId || isNaN(parsedUserId)) {
+      throw new Error('ID do usuário inválido ou não autenticado.');
+    }
+
+    if (!parsedMovieId || isNaN(parsedMovieId)) {
+      throw new Error('ID do filme é obrigatório e deve ser um número válido.');
+    }
+
+    // Verifica se o usuário realmente existe na tabela 'users' para evitar P2003
+    const userExists = await prisma.user.findUnique({
+      where: { id: parsedUserId },
+      select: { id: true },
+    });
+
+    if (!userExists) {
+      throw new Error(`Usuário ID ${parsedUserId} não foi encontrado no banco de dados.`);
+    }
+
     const normalizedStatus = status ? String(status).trim().toUpperCase() : 'WATCHLIST';
     const isWatched = normalizedStatus === 'WATCHED';
 
@@ -97,9 +117,12 @@ class LibraryService {
    * Retorna os filmes salvos na biblioteca do usuário enriquecidos com metadados do TMDB (Poster, Título, Ano).
    */
   async getLibrary(userId) {
+    const parsedUserId = Number(userId);
+    if (!parsedUserId || isNaN(parsedUserId)) return [];
+
     const userMovies = await prisma.userMovie.findMany({
       where: {
-        userId: Number(userId),
+        userId: parsedUserId,
       },
       orderBy: {
         updatedAt: 'desc',
@@ -133,10 +156,15 @@ class LibraryService {
    * Estatísticas de filmes assistidos e na lista de desejos.
    */
   async getStats(userId) {
+    const parsedUserId = Number(userId);
+    if (!parsedUserId || isNaN(parsedUserId)) {
+      return { total: 0, watchedCount: 0, watchlistCount: 0 };
+    }
+
     const counts = await prisma.userMovie.groupBy({
       by: ['status'],
       where: {
-        userId: Number(userId),
+        userId: parsedUserId,
       },
       _count: {
         _all: true,
@@ -166,6 +194,10 @@ class LibraryService {
 
     const parsedUserId = Number(userId);
     const parsedMovieId = Number(movieId);
+
+    if (!parsedUserId || isNaN(parsedUserId) || !parsedMovieId || isNaN(parsedMovieId)) {
+      throw new Error('IDs de usuário e filme são obrigatórios para atualização.');
+    }
 
     const updateData = {};
 
@@ -210,10 +242,17 @@ class LibraryService {
    * Remove um filme da biblioteca.
    */
   async removeMovie(userId, movieId) {
+    const parsedUserId = Number(userId);
+    const parsedMovieId = Number(movieId);
+
+    if (!parsedUserId || isNaN(parsedUserId) || !parsedMovieId || isNaN(parsedMovieId)) {
+      return { count: 0 };
+    }
+
     return prisma.userMovie.deleteMany({
       where: {
-        userId: Number(userId),
-        movieId: Number(movieId),
+        userId: parsedUserId,
+        movieId: parsedMovieId,
       },
     });
   }
