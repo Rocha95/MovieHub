@@ -73,6 +73,9 @@ O projeto foi desenvolvido como uma forma de aplicar, na prática, conceitos de 
 
 > 📸 Screenshots da aplicação serão adicionados conforme o desenvolvimento do projeto.
 
+## Tela Inicial 
+<img width="1224" height="907" alt="image" src="https://github.com/user-attachments/assets/bfeef329-5bfd-406e-803d-c9a99ff9b17c" />
+
 ### Dashboard
 
 <!-- Adicione aqui uma imagem do Dashboard -->
