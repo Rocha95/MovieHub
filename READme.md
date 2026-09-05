@@ -76,19 +76,13 @@ O projeto foi desenvolvido como uma forma de aplicar, na prática, conceitos de 
 ## Tela Inicial 
 <img width="1224" height="907" alt="image" src="https://github.com/user-attachments/assets/bfeef329-5bfd-406e-803d-c9a99ff9b17c" />
 
-### Dashboard
-
-<!-- Adicione aqui uma imagem do Dashboard -->
-
-<!-- ![MovieHub Dashboard](./docs/images/dashboard.png) -->
-
-### Biblioteca
-
-<!-- ![MovieHub Biblioteca](./docs/images/biblioteca.png) -->
-
 ### Detalhes do filme
 
-<!-- ![MovieHub Filme](./docs/images/movie-details.png) -->
+<img width="1205" height="688" alt="Detalhes" src="https://github.com/user-attachments/assets/c278ee0e-76af-4d33-9069-421c1215cf68" />
+
+### Sessões
+
+<img width="1178" height="882" alt="Sessoes" src="https://github.com/user-attachments/assets/be3daa41-c552-4b35-95be-430479dcd857" />
 
 ---
 
