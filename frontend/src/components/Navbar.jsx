@@ -64,7 +64,7 @@ export default function Navbar() {
         {/* Esquerda: Logo + Campo de Busca */}
         <div className="flex items-center gap-6">
           <Link to="/" className="font-display text-2xl text-marquee-gold font-bold tracking-wider shrink-0">
-            CINEAPP
+            MOVIEHUB
           </Link>
 
           <form onSubmit={handleSearch} className="relative w-48 sm:w-64">

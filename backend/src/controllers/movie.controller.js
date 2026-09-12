@@ -53,8 +53,10 @@ class MovieController {
   };
 
   getNowPlaying = async (req, res, next) => {
+    const { city } = req.query; // Captura a cidade se enviada na query URL
+
     return this.handleRequest(res, next, () =>
-      MovieService.getNowPlaying()
+      MovieService.getNowPlaying(city) // Repassa 'city' para o Service
     );
   };
 

@@ -1,6 +1,14 @@
 const tmdbClient = require('../clients/tmdb.client');
 const omdbClient = require('../clients/omdb.client');
 const MovieMapper = require('../mappers/movie.mapper');
+const ingressoService = require('./ingresso.service');
+
+const DEFAULT_BOX_OFFICE_DATA = Object.freeze({
+    available: false,
+    boxOffice: null,
+    imdbRating: null,
+    awards: null
+});
 
 function parseCurrency(value) {
     if (!value) return -1;
@@ -15,9 +23,9 @@ class MovieService {
             const response = await tmdbClient.get('/search/movie', {
                 params: { query }
             });
-            return MovieMapper.mapSearchMovies(response.data.results);
+            return MovieMapper.mapSearchMovies(response.data?.results || []);
         } catch (error) {
-            console.error('❌ Erro no TMDB (search):', error.response?.data || error.message);
+            this._logError('TMDB (search)', error);
             throw new Error('Erro ao pesquisar filmes.');
         }
     }
@@ -29,7 +37,7 @@ class MovieService {
             });
             return MovieMapper.mapMovieDetails(response.data);
         } catch (error) {
-            console.error('❌ Erro no TMDB (getById):', error.response?.data || error.message);
+            this._logError('TMDB (getById)', error);
             throw new Error('Erro ao buscar detalhes do filme.');
         }
     }
@@ -37,22 +45,44 @@ class MovieService {
     async fetchMovieList(endpoint) {
         try {
             const response = await tmdbClient.get(endpoint);
-            return MovieMapper.mapSearchMovies(response.data.results);
+            return MovieMapper.mapSearchMovies(response.data?.results || []);
         } catch (error) {
-            console.error('❌ Erro no TMDB (fetchMovieList):');
-            if (error.response) {
-                console.error('  Status HTTP:', error.response.status);
-                console.error('  Resposta TMDB:', JSON.stringify(error.response.data));
-            } else {
-                console.error('  Detalhes do Erro:', error.message);
-            }
-
+            this._logError('TMDB (fetchMovieList)', error);
             throw new Error('Erro ao buscar lista de filmes.');
         }
     }
 
-    async getNowPlaying() {
-        return this.fetchMovieList('/movie/now_playing');
+    /**
+     * Retorna os filmes em cartaz. Quando uma cidade é informada, tenta
+     * filtrar pelos filmes com sessão confirmada nela (via Ingresso.com).
+     */
+    async getNowPlaying(city) {
+        const movies = await this.fetchMovieList('/movie/now_playing');
+
+        const cleanCity = city?.trim();
+        if (!cleanCity) {
+            return { city: null, source: 'tmdb', movies };
+        }
+
+        try {
+            const referenceTitles = await ingressoService.getMovieTitlesInCity(cleanCity);
+
+            if (!referenceTitles?.length) {
+                return { city: cleanCity, source: 'tmdb-fallback', movies };
+            }
+
+            const filtered = ingressoService.filterMoviesByTitles(movies, referenceTitles);
+            const hasMatches = filtered.length > 0;
+
+            return {
+                city: cleanCity,
+                source: hasMatches ? 'ingresso' : 'tmdb-fallback',
+                movies: hasMatches ? filtered : movies,
+            };
+        } catch (error) {
+            console.error(`❌ Erro ao filtrar filmes para a cidade "${cleanCity}":`, error.message);
+            return { city: cleanCity, source: 'tmdb-fallback', movies };
+        }
     }
 
     async getPopular() {
@@ -74,11 +104,9 @@ class MovieService {
     async getProviders(id) {
         try {
             const response = await tmdbClient.get(`/movie/${id}/watch/providers`);
-            
-            // Retorna os dados agrupados por região (ex: response.data.results.BR)
-            return response.data.results || {};
+            return response.data?.results || {};
         } catch (error) {
-            console.error('❌ Erro no TMDB (getProviders):', error.response?.data || error.message);
+            this._logError('TMDB (getProviders)', error);
             throw new Error('Erro ao buscar provedores do filme.');
         }
     }
@@ -86,15 +114,10 @@ class MovieService {
     async getBoxOffice(id) {
         try {
             const response = await tmdbClient.get(`/movie/${id}`);
-            const imdbId = response.data.imdb_id;
+            const imdbId = response.data?.imdb_id;
 
             if (!imdbId) {
-                return {
-                    available: false,
-                    boxOffice: null,
-                    imdbRating: null,
-                    awards: null
-                };
+                return { ...DEFAULT_BOX_OFFICE_DATA };
             }
 
             const omdbResponse = await omdbClient.get('/', {
@@ -103,26 +126,20 @@ class MovieService {
 
             return MovieMapper.mapBoxOffice(omdbResponse.data);
         } catch (error) {
-            console.error('❌ Erro ao buscar dados de bilheteria:', error.response?.data || error.message);
-            throw new Error('Erro ao buscar dados de bilheteria.');
+            this._logError('OMDB/TMDB (getBoxOffice)', error);
+            return { ...DEFAULT_BOX_OFFICE_DATA };
         }
     }
 
     async getBoxOfficeChart() {
         try {
-            const nowPlaying = await this.getNowPlaying();
-            const top = nowPlaying.slice(0, 10);
+            const { movies } = await this.getNowPlaying();
+            const topMovies = movies.slice(0, 10);
 
+            // Busca os dados de bilheteria em paralelo sem travar a execução total se uma falhar
             const withBoxOffice = await Promise.all(
-                top.map(async (movie) => {
-                    const boxOffice = await this.getBoxOffice(movie.id)
-                        .catch(() => ({
-                            available: false,
-                            boxOffice: null,
-                            imdbRating: null,
-                            awards: null
-                        }));
-
+                topMovies.map(async (movie) => {
+                    const boxOffice = await this.getBoxOffice(movie.id);
                     return {
                         ...movie,
                         ...boxOffice
@@ -134,7 +151,19 @@ class MovieService {
                 (a, b) => parseCurrency(b.boxOffice) - parseCurrency(a.boxOffice)
             );
         } catch (error) {
+            console.error('❌ Erro ao montar ranking de bilheteria:', error.message);
             throw new Error('Erro ao montar o ranking de bilheteria.');
+        }
+    }
+
+    /**
+     * Helper privado para padronizar os logs de erro do TMDB/OMDB
+     */
+    _logError(context, error) {
+        if (error.response) {
+            console.error(`❌ Erro no ${context} [HTTP ${error.response.status}]:`, JSON.stringify(error.response.data));
+        } else {
+            console.error(`❌ Erro no ${context}:`, error.message);
         }
     }
 }

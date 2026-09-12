@@ -1,32 +1,59 @@
 import { useState, useEffect } from 'react'
 
+const API_BASE_URL = 'http://localhost:3000'
+
 export default function NearbySessions() {
   const [movies, setMovies] = useState([])
-  const [loadingMovies, setLoadingMovies] = useState(true)
-  const [location, setLocation] = useState(null)
+  const [source, setSource] = useState(null) // 'tmdb' | 'ingresso' | 'tmdb-fallback'
+  const [loadingMovies, setLoadingMovies] = useState(false)
+  const [location, setLocation] = useState('')
   const [cityInput, setCityInput] = useState('')
   const [loadingLocation, setLoadingLocation] = useState(false)
   const [error, setError] = useState(null)
 
-  // 1. Carrega os filmes em cartaz ao montar a página
+  // 1. Busca os filmes com cancelamento de requisições antigas (AbortController)
   useEffect(() => {
-    async function fetchNowPlaying() {
+    const controller = new AbortController()
+    
+    async function fetchMoviesByLocation() {
+      setLoadingMovies(true)
+      setError(null)
+
       try {
-        const res = await fetch('http://localhost:3000/movies/now-playing')
-        if (!res.ok) throw new Error('Erro ao carregar filmes em cartaz')
+        const query = location ? `?city=${encodeURIComponent(location.trim())}` : ''
+        const res = await fetch(`${API_BASE_URL}/movies/now-playing${query}`, {
+          signal: controller.signal,
+        })
+
+        if (!res.ok) throw new Error('Erro ao carregar filmes em cartaz.')
+
         const data = await res.json()
-        setMovies(data || [])
+
+        // Tratamento flexível: aceita { movies: [...] } ou array direto [...]
+        const movieList = Array.isArray(data) ? data : (data.movies || [])
+        const currentSource = Array.isArray(data) ? (location ? 'tmdb-fallback' : 'tmdb') : (data.source || null)
+
+        setMovies(movieList)
+        setSource(currentSource)
       } catch (err) {
-        setError('Não foi possível carregar a lista de filmes em cartaz.')
+        if (err.name !== 'AbortError') {
+          setError('Não foi possível carregar a lista de filmes para esta localização.')
+          setMovies([])
+          setSource(null)
+        }
       } finally {
-        setLoadingMovies(false)
+        if (!controller.signal.aborted) {
+          setLoadingMovies(false)
+        }
       }
     }
 
-    fetchNowPlaying()
-  }, [])
+    fetchMoviesByLocation()
 
-  // 2. Obtém a localização do usuário via navegador + Reverse Geocoding
+    return () => controller.abort()
+  }, [location])
+
+  // 2. Localização via Geolocalização do Navegador + Reverse Geocoding
   function handleDetectLocation() {
     if (!navigator.geolocation) {
       setError('Geolocalização não é suportada pelo seu navegador.')
@@ -40,85 +67,91 @@ export default function NearbySessions() {
       async (position) => {
         const { latitude, longitude } = position.coords
         try {
-          // Busca o nome da cidade gratuitamente via OpenStreetMap (Nominatim)
           const res = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
           )
           const data = await res.json()
+          
           const detectedCity =
-            data.address.city ||
-            data.address.town ||
-            data.address.municipality ||
-            data.address.village ||
+            data.address?.city ||
+            data.address?.town ||
+            data.address?.municipality ||
+            data.address?.village ||
             ''
 
           if (detectedCity) {
             setLocation(detectedCity)
             setCityInput(detectedCity)
           } else {
-            setLocation(`${latitude.toFixed(2)}, ${longitude.toFixed(2)}`)
+            setError('Não foi possível identificar o nome da cidade.')
           }
         } catch (err) {
-          setLocation('Sua região')
+          setError('Erro ao converter geolocalização em cidade.')
         } finally {
           setLoadingLocation(false)
         }
       },
-      () => {
-        setError('Não foi possível obter sua localização automaticamente. Digite sua cidade abaixo.')
+      (geoError) => {
+        let errorMsg = 'Não foi possível obter sua localização automaticamente.'
+        if (geoError.code === geoError.PERMISSION_DENIED) {
+          errorMsg = 'Permissão de localização negada pelo usuário.'
+        }
+        setError(`${errorMsg} Digite sua cidade manualmente.`)
         setLoadingLocation(false)
-      }
+      },
+      { timeout: 10000 }
     )
   }
 
-  // 3. Permite definir a cidade manualmente no formulário
+  // 3. Submissão do formulário manual
   function handleManualCitySubmit(e) {
     e.preventDefault()
-    if (!cityInput.trim()) return
-    setLocation(cityInput.trim())
+    const trimmedCity = cityInput.trim()
+    if (!trimmedCity) return
+    setLocation(trimmedCity)
     setError(null)
   }
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-8 text-cream">
       {/* Cabeçalho */}
-      <div className="mb-8">
+      <header className="mb-8">
         <h1 className="font-display text-3xl text-marquee-gold mb-2">
           Sessões Próximas de Você
         </h1>
         <p className="text-dust">
           Encontre os horários e cinemas que estão exibindo os filmes em cartaz na sua região.
         </p>
-      </div>
+      </header>
 
       {/* Caixa de Controle de Localização */}
-      <div className="mb-10 rounded-xl border border-cinema-surface-2 bg-cinema-surface p-6 shadow-lg">
+      <section className="mb-10 rounded-xl border border-cinema-surface-2 bg-cinema-surface p-6 shadow-lg" aria-label="Controle de Localização">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className="text-lg font-semibold text-cream">Sua Localização</h2>
             <p className="text-sm text-dust mt-1">
               {location ? (
                 <span>
-                  Exibindo opções para:{' '}
+                  Exibindo filmes com sessões em:{' '}
                   <strong className="text-marquee-gold font-medium">{location}</strong>
                 </span>
               ) : (
-                'Detecte sua posição para buscar cinemas e horários locais.'
+                'Detecte sua posição ou digite a cidade para filtrar os filmes disponíveis.'
               )}
             </p>
           </div>
 
           <button
+            type="button"
             onClick={handleDetectLocation}
             disabled={loadingLocation}
             className="flex items-center justify-center gap-2 rounded-full bg-marquee-gold px-5 py-2.5 font-medium text-cinema-black hover:bg-marquee-gold-dim transition-colors disabled:opacity-50"
+            aria-label="Detectar localização via GPS"
           >
             {loadingLocation ? (
               <span>Detectando...</span>
             ) : (
-              <>
-                <span>📍 Detectar via GPS</span>
-              </>
+              <span>📍 Detectar via GPS</span>
             )}
           </button>
         </div>
@@ -131,50 +164,63 @@ export default function NearbySessions() {
             onChange={(e) => setCityInput(e.target.value)}
             placeholder="Ou digite sua cidade (ex: Sorocaba)..."
             className="flex-1 rounded-full border border-cinema-surface-2 bg-cinema-black px-4 py-1.5 text-sm text-cream placeholder-dust outline-none focus:border-marquee-gold"
+            aria-label="Digite sua cidade"
           />
           <button
             type="submit"
             className="rounded-full border border-marquee-gold px-4 py-1.5 text-sm text-marquee-gold hover:bg-marquee-gold hover:text-cinema-black transition-colors"
           >
-            Definir
+            Filtrar
           </button>
         </form>
 
-        {error && <p className="text-sm text-velvet mt-3">{error}</p>}
-      </div>
+        {/* Feedbacks de Erro e Origem dos Dados */}
+        {error && <p className="text-sm text-velvet mt-3" role="alert">{error}</p>}
 
-      {/* Lista de Filmes em Cartaz e Botões de Sessões */}
-      <div>
+        {!error && location && source === 'tmdb-fallback' && (
+          <p className="text-sm text-dust mt-3">
+            Ainda não temos a grade confirmada para <strong>{location}</strong> — exibindo o cartaz geral em exibição.
+          </p>
+        )}
+        {!error && location && source === 'ingresso' && (
+          <p className="text-sm text-dust mt-3">
+            Sessões confirmadas para {location}.
+          </p>
+        )}
+      </section>
+
+      {/* Lista de Filmes */}
+      <section aria-label="Lista de Filmes em Exibição">
         <h2 className="text-xl font-semibold mb-6 text-cream">
-          Filmes Atualmente em Exibição
+          {location ? `Filmes em Exibição em ${location}` : 'Todos os Filmes em Cartaz'}
         </h2>
 
         {loadingMovies ? (
-          <p className="text-dust">Carregando filmes em cartaz...</p>
+          <p className="text-dust">Buscando filmes disponíveis na região...</p>
+        ) : movies.length === 0 ? (
+          <p className="text-dust">Nenhum filme encontrado no momento.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {movies.map((movie) => {
               const currentCity = location || 'minha cidade'
-              
-              // Busca generalizada de horários no Google
+
               const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(
                 `filme ${movie.title} cinema ${currentCity} horarios`
               )}`
-              
-              // Rota oficial de resultados do Ingresso.com (corrige o erro 404)
+
               const ingressoUrl = `https://www.ingresso.com/busca/resultado?q=${encodeURIComponent(movie.title)}`
 
               return (
-                <div
+                <article
                   key={movie.id}
                   className="flex gap-4 rounded-xl bg-cinema-surface p-4 border border-cinema-surface-2 hover:border-cinema-surface-2/80 transition-colors"
                 >
-                  {/* Cartaz do filme */}
                   {movie.poster ? (
                     <img
                       src={movie.poster}
-                      alt={movie.title}
+                      alt={`Cartaz do filme ${movie.title}`}
                       className="w-28 h-40 object-cover rounded-lg flex-shrink-0"
+                      loading="lazy"
                     />
                   ) : (
                     <div className="w-28 h-40 bg-cinema-surface-2 rounded-lg flex items-center justify-center text-dust text-xs text-center p-2 flex-shrink-0">
@@ -182,7 +228,6 @@ export default function NearbySessions() {
                     </div>
                   )}
 
-                  {/* Informações e Ações */}
                   <div className="flex flex-col justify-between flex-1">
                     <div>
                       <h3 className="text-lg font-bold text-cream line-clamp-1">
@@ -196,7 +241,6 @@ export default function NearbySessions() {
                       </span>
                     </div>
 
-                    {/* Botões para Checar Horários */}
                     <div className="flex flex-wrap gap-2 mt-4">
                       <a
                         href={googleSearchUrl}
@@ -216,12 +260,12 @@ export default function NearbySessions() {
                       </a>
                     </div>
                   </div>
-                </div>
+                </article>
               )
             })}
           </div>
         )}
-      </div>
+      </section>
     </main>
   )
-}
+} 
