@@ -84,6 +84,13 @@ O projeto foi desenvolvido como uma forma de aplicar, na prática, conceitos de 
 
 <img width="1178" height="882" alt="Sessoes" src="https://github.com/user-attachments/assets/be3daa41-c552-4b35-95be-430479dcd857" />
 
+### Bilheterias
+<img width="1251" height="522" alt="Bilheterias-1" src="https://github.com/user-attachments/assets/8518b5c4-4fe3-49cb-a87a-c8e7d2f0fc6c" />
+<img width="1205" height="897" alt="Bilheterias-2" src="https://github.com/user-attachments/assets/7bbf0998-5ece-414a-b219-729b33508cc2" />
+
+### Sugestões
+<img width="1221" height="807" alt="Sugestões" src="https://github.com/user-attachments/assets/ca74831f-aade-4f11-ad9a-ce93f7d8efbd" />
+
 ---
 
 ## 🏗️ Arquitetura
