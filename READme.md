@@ -91,6 +91,9 @@ O projeto foi desenvolvido como uma forma de aplicar, na prática, conceitos de 
 ### Sugestões
 <img width="1221" height="807" alt="Sugestões" src="https://github.com/user-attachments/assets/ca74831f-aade-4f11-ad9a-ce93f7d8efbd" />
 
+### Minha Biblioteca 
+<img width="1329" height="695" alt="image" src="https://github.com/user-attachments/assets/a001c6f3-bac7-4706-b477-10a01a502fb8" />
+
 ---
 
 ## 🏗️ Arquitetura
