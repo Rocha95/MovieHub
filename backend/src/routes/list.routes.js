@@ -1,7 +1,51 @@
 const express = require('express');
 const router = express.Router();
+const path = require('path');
+const fs = require('fs');
+const multer = require('multer');
 const { PrismaClient } = require('@prisma/client');
+
 const prisma = new PrismaClient();
+
+// 1. Ajuste do caminho: sobe 2 níveis (src/routes/ -> backend/) para acessar /backend/Uploads
+// IMPORTANTE: o nome da pasta precisa bater EXATAMENTE (maiúsculas/minúsculas) com a pasta
+// real do projeto (MovieHub\backend\Uploads) e com o que estiver configurado no
+// express.static() do server.js/app.js. Em sistemas de arquivo case-sensitive (Linux/produção),
+// "uploads" e "Uploads" são pastas diferentes.
+const uploadDir = path.join(__dirname, '..', '..', 'Uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// 2. Configuração do Multer (Armazenamento em Disco)
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const ext = path.extname(file.originalname);
+    cb(null, `capa-${uniqueSuffix}${ext}`);
+  },
+});
+
+// Filtro para aceitar somente imagens
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image/')) {
+    cb(null, true);
+  } else {
+    cb(new Error('Apenas arquivos de imagem são permitidos!'), false);
+  }
+};
+
+const upload = multer({ storage, fileFilter });
+
+// Helper para construir URL acessível do arquivo uploadado
+// Precisa usar o MESMO prefixo/caso configurado na rota estática do servidor
+// (ex: app.use('/Uploads', express.static(path.join(__dirname, 'Uploads'))) )
+const getFileUrl = (req, filename) => {
+  return `${req.protocol}://${req.get('host')}/Uploads/${filename}`;
+};
 
 // GET /lists - Listar todas as listas
 router.get('/', async (req, res, next) => {
@@ -69,12 +113,20 @@ router.get('/:id', async (req, res, next) => {
   }
 });
 
-// POST /lists - Criar nova lista
-router.post('/', async (req, res, next) => {
+// POST /lists - Criar nova lista (Suporta FormData com arquivo ou JSON com URL)
+router.post('/', upload.single('capa'), async (req, res, next) => {
   try {
     const titulo = req.body.titulo || req.body.title;
     const descricao = req.body.descricao || req.body.description;
     const userId = req.body.userId ? Number(req.body.userId) : null;
+
+    // Procura por capas enviadas via arquivo (req.file) ou via texto em variações comuns
+    let capaUrl = null;
+    if (req.file) {
+      capaUrl = getFileUrl(req, req.file.filename);
+    } else if (req.body.capaUrl || req.body.novaCapaUrl || req.body.capa) {
+      capaUrl = req.body.capaUrl || req.body.novaCapaUrl || req.body.capa;
+    }
 
     if (!titulo || !titulo.trim()) {
       return res.status(400).json({ message: 'O título da lista é obrigatório.' });
@@ -84,6 +136,7 @@ router.post('/', async (req, res, next) => {
       data: {
         titulo: titulo.trim(),
         descricao: descricao ? descricao.trim() : '',
+        capaUrl: capaUrl ? capaUrl.trim() : null,
         userId: userId,
       },
     });
@@ -94,11 +147,66 @@ router.post('/', async (req, res, next) => {
       title: novaLista.titulo,
       descricao: novaLista.descricao,
       description: novaLista.descricao,
+      capaUrl: novaLista.capaUrl,
       filmesCount: 0,
       createdAt: novaLista.createdAt,
     });
   } catch (error) {
     console.error('Erro ao criar lista:', error);
+    next(error);
+  }
+});
+
+// PATCH /lists/:id - Atualizar informações da lista (Suporta Multipart FormData e JSON)
+router.patch('/:id', upload.single('capa'), async (req, res, next) => {
+  try {
+    const listId = Number(req.params.id);
+
+    if (isNaN(listId)) {
+      return res.status(400).json({ message: 'ID da lista inválido.' });
+    }
+
+    const titulo = req.body.titulo || req.body.title;
+    const descricao = req.body.descricao || req.body.description;
+    
+    // Captura valores enviados em texto caso não venha arquivo
+    let capaUrl = req.body.capaUrl || req.body.novaCapaUrl || req.body.capa;
+
+    // Se o Multer processou um arquivo novo, sobrescreve a URL
+    if (req.file) {
+      capaUrl = getFileUrl(req, req.file.filename);
+    }
+
+    const dataToUpdate = {};
+    if (capaUrl !== undefined && capaUrl !== null) {
+      dataToUpdate.capaUrl = capaUrl.trim();
+    }
+    if (titulo !== undefined) {
+      dataToUpdate.titulo = titulo.trim();
+    }
+    if (descricao !== undefined) {
+      dataToUpdate.descricao = descricao.trim();
+    }
+
+    const listaAtualizada = await prisma.list.update({
+      where: { id: listId },
+      data: dataToUpdate,
+    });
+
+    return res.status(200).json({
+      id: listaAtualizada.id,
+      titulo: listaAtualizada.titulo,
+      title: listaAtualizada.titulo,
+      descricao: listaAtualizada.descricao,
+      description: listaAtualizada.descricao,
+      capaUrl: listaAtualizada.capaUrl,
+      createdAt: listaAtualizada.createdAt,
+    });
+  } catch (error) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ message: 'Lista não encontrada.' });
+    }
+    console.error('Erro ao atualizar lista:', error);
     next(error);
   }
 });

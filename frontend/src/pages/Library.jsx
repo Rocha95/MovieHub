@@ -7,22 +7,29 @@ const STATUS_LABEL = {
   WATCHED: 'Assistido',
 }
 
-function StarRating({ value, onChange }) {
+function TenPointRating({ value, onChange }) {
   return (
-    <div className="flex gap-1">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <button
-          key={star}
-          type="button"
-          onClick={() => onChange(star === value ? null : star)}
-          className={`text-lg ${
-            value && star <= value ? 'text-marquee-gold' : 'text-cinema-surface-2'
-          }`}
-          aria-label={`Avaliar com ${star} estrelas`}
-        >
-          ★
-        </button>
-      ))}
+    <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
+          <button
+            key={score}
+            type="button"
+            onClick={() => onChange(score === value ? null : score)}
+            className={`h-6 w-6 rounded text-xs font-semibold transition-colors ${
+              value && score <= value
+                ? 'bg-marquee-gold text-cinema-surface'
+                : 'bg-cinema-surface-2 text-dust hover:text-cream'
+            }`}
+            aria-label={`Avaliar com nota ${score}`}
+          >
+            {score}
+          </button>
+        ))}
+      </div>
+      <span className="min-w-[3rem] text-xs font-medium text-cream">
+        {value ? `${value}/10` : 'Sem nota'}
+      </span>
     </div>
   )
 }
@@ -47,7 +54,6 @@ export default function Library() {
       .then((res) => setItems(res.data))
       .catch((err) => {
         if (err.response?.status === 401) {
-          // Token inválido/inexistente: limpa a sessão e redireciona
           localStorage.removeItem('token')
           navigate('/login')
           return
@@ -69,13 +75,11 @@ export default function Library() {
     const previousFavorite = item.favorite
     const favorite = !previousFavorite
     
-    // Atualização otimista
     updateLocalItem(item.movieId, { favorite })
 
     try {
       await api.patch(`/library/${item.movieId}`, { favorite })
     } catch (err) {
-      // Rollback se a API falhar
       updateLocalItem(item.movieId, { favorite: previousFavorite })
       if (err.response?.status === 401) navigate('/login')
     }
@@ -84,13 +88,11 @@ export default function Library() {
   async function setRating(item, rating) {
     const previousRating = item.rating
     
-    // Atualização otimista
     updateLocalItem(item.movieId, { rating })
 
     try {
       await api.patch(`/library/${item.movieId}`, { rating })
     } catch (err) {
-      // Rollback se a API falhar
       updateLocalItem(item.movieId, { rating: previousRating })
       if (err.response?.status === 401) navigate('/login')
     }
@@ -99,13 +101,11 @@ export default function Library() {
   async function removeItem(item) {
     const previousItems = [...items]
     
-    // Atualização otimista
     setItems((prev) => prev.filter((i) => i.movieId !== item.movieId))
 
     try {
       await api.delete(`/library/${item.movieId}`)
     } catch (err) {
-      // Rollback se a API falhar
       setItems(previousItems)
       if (err.response?.status === 401) navigate('/login')
     }
@@ -155,8 +155,8 @@ export default function Library() {
                 {item.releaseDate?.slice(0, 4) ?? '—'}
               </p>
 
-              <div className="mt-2 flex items-center gap-4">
-                <StarRating
+              <div className="mt-2 flex flex-wrap items-center gap-4">
+                <TenPointRating
                   value={item.rating}
                   onChange={(rating) => setRating(item, rating)}
                 />
