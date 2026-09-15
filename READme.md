@@ -84,6 +84,29 @@ O projeto foi desenvolvido como uma forma de aplicar, na prática, conceitos de 
 
 <img width="1178" height="882" alt="Sessoes" src="https://github.com/user-attachments/assets/be3daa41-c552-4b35-95be-430479dcd857" />
 
+### Bilheterias
+<img width="1251" height="522" alt="Bilheterias-1" src="https://github.com/user-attachments/assets/8518b5c4-4fe3-49cb-a87a-c8e7d2f0fc6c" />
+<img width="1205" height="897" alt="Bilheterias-2" src="https://github.com/user-attachments/assets/7bbf0998-5ece-414a-b219-729b33508cc2" />
+
+### Sugestões
+<img width="1221" height="807" alt="Sugestões" src="https://github.com/user-attachments/assets/ca74831f-aade-4f11-ad9a-ce93f7d8efbd" />
+
+### Minha Biblioteca 
+<img width="1329" height="695" alt="image" src="https://github.com/user-attachments/assets/a001c6f3-bac7-4706-b477-10a01a502fb8" />
+
+### Listas
+<img width="1178" height="550" alt="image" src="https://github.com/user-attachments/assets/269cf079-5316-40e7-a12e-326534d7ab20" />
+
+<img width="1180" height="457" alt="image" src="https://github.com/user-attachments/assets/cb94bf5c-c375-4ec8-8200-35acdf06a4fb" />
+
+<img width="491" height="496" alt="image" src="https://github.com/user-attachments/assets/19817610-5e90-4d5f-bcaa-8cee85f18ec1" />
+
+### Dashboard
+
+<img width="1160" height="911" alt="image" src="https://github.com/user-attachments/assets/9ee9f268-f76b-4b54-ba8e-445852cb41a5" />
+
+<img width="1176" height="880" alt="image" src="https://github.com/user-attachments/assets/cb2b3116-33a0-4e78-8efc-d42450aff687" />
+
 ---
 
 ## 🏗️ Arquitetura
@@ -288,7 +311,6 @@ O MovieHub continua em desenvolvimento e novas funcionalidades podem ser adicion
 Algumas possibilidades:
 
 * [ ] Comentários sobre os filmes assistidos
-* [ ] Melhorias no dashboard
 * [ ] Sistema de recomendações baseado no histórico
 * [ ] Melhorias de responsividade
 * [ ] Testes automatizados
