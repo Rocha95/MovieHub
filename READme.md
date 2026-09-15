@@ -94,6 +94,19 @@ O projeto foi desenvolvido como uma forma de aplicar, na prática, conceitos de 
 ### Minha Biblioteca 
 <img width="1329" height="695" alt="image" src="https://github.com/user-attachments/assets/a001c6f3-bac7-4706-b477-10a01a502fb8" />
 
+### Listas
+<img width="1178" height="550" alt="image" src="https://github.com/user-attachments/assets/269cf079-5316-40e7-a12e-326534d7ab20" />
+
+<img width="1180" height="457" alt="image" src="https://github.com/user-attachments/assets/cb94bf5c-c375-4ec8-8200-35acdf06a4fb" />
+
+<img width="491" height="496" alt="image" src="https://github.com/user-attachments/assets/19817610-5e90-4d5f-bcaa-8cee85f18ec1" />
+
+### Dashboard
+
+<img width="1160" height="911" alt="image" src="https://github.com/user-attachments/assets/9ee9f268-f76b-4b54-ba8e-445852cb41a5" />
+
+<img width="1176" height="880" alt="image" src="https://github.com/user-attachments/assets/cb2b3116-33a0-4e78-8efc-d42450aff687" />
+
 ---
 
 ## 🏗️ Arquitetura
