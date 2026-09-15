@@ -311,7 +311,6 @@ O MovieHub continua em desenvolvimento e novas funcionalidades podem ser adicion
 Algumas possibilidades:
 
 * [ ] Comentários sobre os filmes assistidos
-* [ ] Melhorias no dashboard
 * [ ] Sistema de recomendações baseado no histórico
 * [ ] Melhorias de responsividade
 * [ ] Testes automatizados
