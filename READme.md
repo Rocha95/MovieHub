@@ -1,341 +1,190 @@
-# 🎬 MovieHub
+# MovieHub — Refatoração Full Stack
 
-<p align="center">
-  <strong>Uma plataforma Full Stack para descobrir, organizar e acompanhar filmes.</strong>
-</p>
+MovieHub é uma aplicação de catálogo e gestão de experiência cinematográfica construída com **Node.js + Express + React + PostgreSQL + Prisma**, integrada ao TMDB, OMDb e Ingresso.com.
 
-<p align="center">
-  <a href="#-sobre-o-projeto">Sobre</a> •
-  <a href="#-funcionalidades">Funcionalidades</a> •
-  <a href="#️-tecnologias">Tecnologias</a> •
-  <a href="#-arquitetura">Arquitetura</a> •
-  <a href="#-como-executar">Como executar</a>
-</p>
+## O que foi preservado
 
----
+- Busca e detalhes de filmes
+- Filmes populares, bem avaliados, próximos lançamentos e em cartaz
+- Biblioteca pessoal
+- Watchlist e filmes assistidos
+- Avaliação de 0 a 10
+- Listas personalizadas
+- Sessões/localização
+- Sugestões por filme
+- Quiz "O que assistir hoje?"
+- Dashboard e métricas
+- Bilheteria
+- Autenticação JWT
+- Upload de capas de listas
 
-## 📖 Sobre o projeto
+## Melhorias implementadas
 
-O **MovieHub** é uma aplicação Full Stack desenvolvida com o objetivo de centralizar a experiência do usuário com filmes.
+### 1. Sessões por cidade
 
-A plataforma permite explorar informações cinematográficas, organizar uma biblioteca pessoal, criar listas, acompanhar sessões e descobrir novos filmes através de sugestões personalizadas.
+A integração agora resolve a cidade pelo catálogo do Ingresso.com e usa o `cityId` para consultar diretamente os filmes em cartaz daquela cidade. O comportamento antigo que caía em Sorocaba para cidades desconhecidas foi removido.
 
-O projeto foi desenvolvido como uma forma de aplicar, na prática, conceitos de **desenvolvimento Full Stack, APIs REST, integração com serviços externos, modelagem de dados, autenticação e construção de interfaces modernas**.
+Configure:
 
----
+```env
+INGRESSO_PARTNERSHIPS=cinemark,cinepolis,uci,moviecom
+```
 
-## ✨ Funcionalidades
+Use somente as parcerias disponíveis para a sua integração.
 
-### 🎬 Filmes
+### 2. Comentários
 
-* Busca de filmes
-* Visualização de informações detalhadas
-* Gêneros, avaliações e informações de lançamento
-* Integração com dados cinematográficos externos
-* Exploração de filmes relacionados
+Novo modelo `MovieComment` e endpoints:
 
-### 📚 Biblioteca
+- `GET /comments/:movieId`
+- `PUT /comments/:movieId`
+- `DELETE /comments/:movieId`
 
-* Biblioteca pessoal de filmes
-* Organização dos filmes
-* Controle de filmes assistidos
-* Filmes para assistir posteriormente
-* Acompanhamento da experiência do usuário
+Somente usuários que registraram o filme como `WATCHED` podem comentar.
 
-### ❤️ Listas
+### 3. Recomendações pelo histórico
 
-* Criação de listas personalizadas
-* Adição e remoção de filmes
-* Organização dos filmes de acordo com diferentes critérios
-
-### 🎟️ Sessões
-
-* Registro e acompanhamento de sessões
-* Histórico de filmes assistidos
-* Organização da experiência cinematográfica
-
-### 🤖 Sugestões
-
-* Sugestões baseadas nas preferências do usuário
-* Descoberta de novos filmes
-* Exploração de títulos semelhantes
-
-### 📊 Dashboard
-
-* Visão geral da biblioteca
-* Estatísticas dos filmes
-* Informações sobre filmes assistidos
-* Indicadores e dados para acompanhar os hábitos cinematográficos
-
----
-
-## 🖥️ Preview
-
-> 📸 Screenshots da aplicação serão adicionados conforme o desenvolvimento do projeto.
-
-## Tela Inicial 
-<img width="1224" height="907" alt="image" src="https://github.com/user-attachments/assets/bfeef329-5bfd-406e-803d-c9a99ff9b17c" />
-
-### Detalhes do filme
-
-<img width="1205" height="688" alt="Detalhes" src="https://github.com/user-attachments/assets/c278ee0e-76af-4d33-9069-421c1215cf68" />
-
-### Sessões
-
-<img width="1178" height="882" alt="Sessoes" src="https://github.com/user-attachments/assets/be3daa41-c552-4b35-95be-430479dcd857" />
-
-### Bilheterias
-<img width="1251" height="522" alt="Bilheterias-1" src="https://github.com/user-attachments/assets/8518b5c4-4fe3-49cb-a87a-c8e7d2f0fc6c" />
-<img width="1205" height="897" alt="Bilheterias-2" src="https://github.com/user-attachments/assets/7bbf0998-5ece-414a-b219-729b33508cc2" />
-
-### Sugestões
-<img width="1221" height="807" alt="Sugestões" src="https://github.com/user-attachments/assets/ca74831f-aade-4f11-ad9a-ce93f7d8efbd" />
-
-### Minha Biblioteca 
-<img width="1329" height="695" alt="image" src="https://github.com/user-attachments/assets/a001c6f3-bac7-4706-b477-10a01a502fb8" />
-
-### Listas
-<img width="1178" height="550" alt="image" src="https://github.com/user-attachments/assets/269cf079-5316-40e7-a12e-326534d7ab20" />
-
-<img width="1180" height="457" alt="image" src="https://github.com/user-attachments/assets/cb94bf5c-c375-4ec8-8200-35acdf06a4fb" />
-
-<img width="491" height="496" alt="image" src="https://github.com/user-attachments/assets/19817610-5e90-4d5f-bcaa-8cee85f18ec1" />
-
-### Dashboard
-
-<img width="1160" height="911" alt="image" src="https://github.com/user-attachments/assets/9ee9f268-f76b-4b54-ba8e-445852cb41a5" />
-
-<img width="1176" height="880" alt="image" src="https://github.com/user-attachments/assets/cb2b3116-33a0-4e78-8efc-d42450aff687" />
-
----
-
-## 🏗️ Arquitetura
-
-O MovieHub foi desenvolvido seguindo uma arquitetura separando **frontend, backend e banco de dados**.
+Novo endpoint autenticado:
 
 ```text
-                    ┌─────────────────────┐
-                    │      MovieHub       │
-                    │      Frontend       │
-                    │       React         │
-                    └──────────┬──────────┘
-                               │
-                               │ HTTP / REST
-                               ▼
-                    ┌─────────────────────┐
-                    │       Backend       │
-                    │    Node.js / API    │
-                    │      Express        │
-                    └──────────┬──────────┘
-                               │
-                         Prisma ORM
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │     PostgreSQL      │
-                    │      Database       │
-                    └─────────────────────┘
-                               │
-                               │
-                    ┌──────────▼──────────┐
-                    │      TMDB API       │
-                    │  Dados de filmes    │
-                    └─────────────────────┘
+GET /recommendations/personalized
 ```
 
----
+O algoritmo considera os filmes assistidos e pondera os gêneros de acordo com as avaliações do usuário. Os títulos já assistidos são excluídos do resultado.
 
-## 🛠️ Tecnologias
+### 4. Responsividade
 
-### Frontend
+- Navbar com menu mobile
+- Busca adaptada para telas menores
+- Grades responsivas
+- Ajustes globais de overflow, imagens e formulários
 
-* ⚛️ **React**
-* ⚡ **Vite**
-* JavaScript
-* HTML5
-* CSS
+### 5. Performance e cache
 
-### Backend
+Foi criado um cache TTL em memória com deduplicação de requisições simultâneas.
 
-* 🟢 **Node.js**
-* 🚂 **Express**
-* API REST
+Aplicado principalmente a:
 
-### Banco de dados
+- detalhes do TMDB
+- buscas
+- listas do TMDB
+- recomendações
+- provedores
+- bilheteria
+- cidades do Ingresso.com
+- filmes em cartaz por cidade
 
-* 🐘 **PostgreSQL**
-* 🔷 **Prisma ORM**
+Em produção com múltiplas instâncias, substitua o cache em memória por Redis para compartilhar o cache entre processos.
 
-### Integrações
+### 6. Segurança das chaves
 
-* 🎬 **TMDB API**
+As chaves do TMDB/OMDb não são mais expostas nas páginas React. As consultas passam pelo backend.
 
-### Ferramentas
+**Importante:** o `.env` original do pacote recebido não é incluído no projeto final.
 
-* Git
-* GitHub
-* Insomnia
-* VS Code
-
----
-
-## 📂 Estrutura do projeto
-
-```text
-MovieHub/
-│
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── services/
-│   │   └── ...
-│   │
-│   └── ...
-│
-├── backend/
-│   ├── src/
-│   │   ├── controllers/
-│   │   ├── routes/
-│   │   ├── services/
-│   │   └── ...
-│   │
-│   ├── prisma/
-│   │   └── schema.prisma
-│   │
-│   └── ...
-│
-└── README.md
-```
-
----
-
-## 🚀 Como executar
-
-### Pré-requisitos
-
-Antes de iniciar, você precisará ter instalado:
-
-* [Node.js](https://nodejs.org/)
-* PostgreSQL
-* Git
-
-### 1. Clone o repositório
-
-```bash
-git clone https://github.com/SEU-USUARIO/moviehub.git
-
-cd moviehub
-```
-
-### 2. Instale as dependências
-
-Frontend:
-
-```bash
-cd frontend
-npm install
-```
+### 7. Testes
 
 Backend:
 
 ```bash
-cd ../backend
+cd backend
 npm install
+npm test
 ```
 
-### 3. Configure as variáveis de ambiente
+Também há validação de sintaxe dos arquivos Node.
 
-Crie um arquivo `.env` no backend:
+### 8. Docker
 
-```env
-DATABASE_URL="postgresql://usuario:senha@localhost:5432/moviehub"
-
-TMDB_API_KEY="sua_chave_api"
-```
-
-> ⚠️ Nunca publique suas chaves de API ou credenciais no repositório.
-
-### 4. Configure o banco de dados
-
-Execute as migrations do Prisma:
+Subir PostgreSQL + backend + frontend:
 
 ```bash
-npx prisma migrate dev
+cp .env.example .env
+docker compose up -d --build
 ```
 
-### 5. Inicie o backend
+Frontend:
+
+```text
+http://localhost:4173
+```
+
+Backend:
+
+```text
+http://localhost:3000
+```
+
+Health check:
+
+```text
+http://localhost:3000/health
+```
+
+### 9. Prisma
+
+Depois de instalar dependências:
 
 ```bash
-npm run dev
+cd backend
+npm run prisma:generate
+npm run prisma:migrate
 ```
 
-### 6. Inicie o frontend
-
-Em outro terminal:
+Para produção:
 
 ```bash
-cd frontend
-npm run dev
+npm run prisma:deploy
 ```
 
-Depois, acesse a aplicação através da URL exibida pelo Vite.
+A nova migration adiciona comentários e índices para consultas frequentes.
 
----
+## Variáveis de ambiente
 
-## 🧠 Principais conceitos aplicados
+Consulte `.env.example` e `backend/.env.example`.
 
-O desenvolvimento do MovieHub permite colocar em prática conceitos como:
+Nunca versione `.env`.
 
-* Desenvolvimento Full Stack
-* Arquitetura cliente-servidor
-* APIs REST
-* Integração com APIs externas
-* Modelagem relacional
-* ORM com Prisma
-* PostgreSQL
-* Componentização com React
-* Gerenciamento de estado
-* Autenticação e autorização
-* Variáveis de ambiente
-* Git e GitHub
-* Organização de código
-* Separação de responsabilidades
+## Deploy
 
----
+O projeto inclui:
 
-## 🔮 Próximos passos
+- `docker-compose.yml`
+- Dockerfile do backend
+- Dockerfile do frontend
+- configuração Nginx para SPA + proxy da API
+- health checks
+- guia `deploy/DEPLOY-VPS.md`
 
-O MovieHub continua em desenvolvimento e novas funcionalidades podem ser adicionadas ao longo do projeto.
+O deploy em um provedor externo precisa ser executado usando as credenciais/infraestrutura do proprietário.
 
-Algumas possibilidades:
+## Estrutura
 
-* [ ] Comentários sobre os filmes assistidos
-* [ ] Sistema de recomendações baseado no histórico
-* [ ] Melhorias de responsividade
-* [ ] Testes automatizados
-* [ ] Dockerização da aplicação
-* [ ] Deploy da aplicação
-* [ ] Melhorias de performance e cache
+```text
+MovieHub/
+├── backend/
+│   ├── prisma/
+│   │   ├── migrations/
+│   │   └── schema.prisma
+│   └── src/
+│       ├── clients/
+│       ├── controllers/
+│       ├── middlewares/
+│       ├── routes/
+│       ├── services/
+│       ├── utils/
+│       └── validators/
+├── frontend/
+│   └── src/
+│       ├── api/
+│       ├── components/
+│       ├── context/
+│       └── pages/
+├── deploy/
+├── docker-compose.yml
+└── .env.example
+```
 
----
+## Nota sobre Ingresso.com
 
-## 🎯 Objetivo do projeto
-
-Além de criar uma aplicação relacionada a cinema, o MovieHub tem como objetivo servir como um projeto prático para evolução em **desenvolvimento web moderno e arquitetura Full Stack**.
-
-Através dele, estou explorando a integração entre **React, Node.js, PostgreSQL, Prisma e APIs externas**, buscando desenvolver não apenas funcionalidades, mas também boas práticas de arquitetura, organização e experiência do usuário.
-
----
-
-## 👨‍💻 Autor
-
-**Gustavo Rocha**
-
-Desenvolvedor de Software interessado em desenvolvimento Full Stack, arquitetura de sistemas e novas tecnologias.
-
-[![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat\&logo=github\&logoColor=white)](https://github.com/Rocha95)
-
----
-
-⭐ Se este projeto foi útil ou interessante para você, considere deixar uma estrela no repositório!
+A integração depende da API de conteúdo do Ingresso.com e das parcerias autorizadas. A documentação atual disponibiliza endpoints específicos por cidade, incluindo `templates/nowplaying/{cityId}/partnership/{partnership}`. Se uma parceria deixar de estar disponível, ela deve ser removida de `INGRESSO_PARTNERSHIPS`.

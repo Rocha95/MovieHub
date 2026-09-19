@@ -16,6 +16,7 @@ model User {
 
   movies    UserMovie[]
   lists     List[]      // Relacionamento com listas personalizadas
+  comments  MovieComment[]
 
   @@map("users")
 }
@@ -33,8 +34,11 @@ model UserMovie {
   watchedAt DateTime?
 
   user      User        @relation(fields: [userId], references: [id])
+  comments  MovieComment[]
 
   @@unique([userId, movieId])
+  @@index([userId, status])
+  @@index([userId, watchedAt])
 }
 
 model List {
@@ -67,4 +71,20 @@ model ListItem {
 enum MovieStatus {
   WATCHLIST
   WATCHED
+}
+
+model MovieComment {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  movieId   Int
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie     UserMovie @relation(fields: [userId, movieId], references: [userId, movieId], onDelete: Cascade)
+
+  @@unique([userId, movieId])
+  @@index([movieId, createdAt])
+  @@map("movie_comments")
 }

@@ -16,6 +16,8 @@ router.get(
     MovieController.search
 );
 
+router.get('/discover', MovieController.discover);
+router.get('/all-time-boxoffice', MovieController.getAllTimeBoxOffice);
 router.get('/popular', MovieController.getPopular);
 router.get('/top-rated', MovieController.getTopRated);
 router.get('/upcoming', MovieController.getUpcoming);

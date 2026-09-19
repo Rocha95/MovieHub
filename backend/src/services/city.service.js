@@ -1,71 +1,66 @@
+
 const ingressoClient = require('../clients/ingresso.client');
 const { normalize } = require('../utils/text.util');
+const TtlCache = require('../utils/cache');
 
-// As 27 UFs do Brasil. O Ingresso.com não expõe um endpoint único que
-// liste todos os estados de uma vez, então percorremos as 27 UFs para
-// montar o catálogo completo de cidades (confirmado: GET /states/{UF}).
 const UFS = [
-    'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MT', 'MA', 'MS',
-    'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC',
-    'SP', 'SE', 'TO',
+  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MT', 'MA', 'MS',
+  'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC',
+  'SP', 'SE', 'TO',
 ];
 
-// A lista de cidades praticamente não muda, então cacheamos por 24h em
-// memória para não bater 27 vezes no Ingresso a cada requisição.
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
-
-let citiesCache = null;
-let cachedAt = 0;
+const cache = new TtlCache(CACHE_TTL_MS);
 
 async function fetchAllCities() {
-    const results = await Promise.allSettled(
-        UFS.map((uf) => ingressoClient.get(`/states/${uf}`))
-    );
+  const results = await Promise.allSettled(
+    UFS.map((uf) => ingressoClient.get(`/states/${uf}`))
+  );
 
-    const cities = [];
+  const cities = [];
+  results.forEach((result, index) => {
+    if (result.status === 'fulfilled') {
+      cities.push(...(result.value.data?.cities || []));
+    } else {
+      console.error(
+        `Erro no Ingresso.com (states/${UFS[index]}):`,
+        result.reason?.response?.status || result.reason?.message
+      );
+    }
+  });
 
-    results.forEach((result, index) => {
-        if (result.status === 'fulfilled') {
-            cities.push(...(result.value.data?.cities || []));
-        } else {
-            console.error(
-                `❌ Erro no Ingresso.com (states/${UFS[index]}):`,
-                result.reason?.response?.status || result.reason?.message
-            );
-        }
-    });
-
-    return cities;
+  const unique = new Map();
+  for (const city of cities) {
+    if (city?.id != null) unique.set(String(city.id), city);
+  }
+  return [...unique.values()];
 }
 
 async function getAllCities() {
-    const isStale = Date.now() - cachedAt > CACHE_TTL_MS;
-
-    if (!citiesCache || isStale) {
-        citiesCache = await fetchAllCities();
-        cachedAt = Date.now();
-    }
-
-    return citiesCache;
+  return cache.getOrSet('all-cities', fetchAllCities, CACHE_TTL_MS);
 }
 
-/**
- * Encontra a cidade correspondente ao nome informado
- * (ex.: "São Paulo", "sao paulo", "Sorocaba").
- * Retorna null se nenhuma cidade do Ingresso.com bater com o nome.
- */
 async function findCityByName(cityName) {
-    if (!cityName) return null;
+  if (!cityName?.trim()) return null;
 
-    const cities = await getAllCities();
-    const target = normalize(cityName);
+  const target = normalize(cityName);
+  const cities = await getAllCities();
 
-    return (
-        cities.find(
-            (city) =>
-                normalize(city.name) === target || normalize(city.urlKey) === target
-        ) || null
-    );
+  return cities.find(
+    (city) =>
+      normalize(city.name) === target ||
+      normalize(city.urlKey) === target
+  ) || null;
 }
 
-module.exports = { getAllCities, findCityByName };
+async function findCityById(cityId) {
+  if (!cityId) return null;
+  const cities = await getAllCities();
+  return cities.find((city) => String(city.id) === String(cityId)) || null;
+}
+
+module.exports = {
+  getAllCities,
+  findCityByName,
+  findCityById,
+};

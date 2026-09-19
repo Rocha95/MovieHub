@@ -52,3 +52,32 @@ body {
 .ticket-notch::after {
   right: -8px;
 }
+
+
+/* Base responsiva e estabilidade visual */
+html {
+  overflow-x: hidden;
+  background: var(--color-cinema-black);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  overflow-x: hidden;
+}
+
+img, video {
+  max-width: 100%;
+}
+
+button, input, textarea, select {
+  font: inherit;
+}
+
+@media (max-width: 640px) {
+  .ticket-notch::before,
+  .ticket-notch::after {
+    width: 12px;
+    height: 12px;
+  }
+}

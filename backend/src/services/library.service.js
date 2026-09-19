@@ -1,11 +1,15 @@
 const prisma = require('../config/prisma');
+const TtlCache = require('../utils/cache');
+
+const tmdbCache = new TtlCache(10 * 60 * 1000);
 
 class LibraryService {
   /**
    * Helper privado para buscar os detalhes do filme diretamente da API do TMDB
    */
   async #fetchTmdbMovie(movieId) {
-    try {
+    return tmdbCache.getOrSet(`library-movie:${movieId}`, async () => {
+      try {
       const token = process.env.TMDB_READ_TOKEN || process.env.TMDB_TOKEN;
       const apiKey = process.env.TMDB_API_KEY;
 
@@ -28,7 +32,8 @@ class LibraryService {
     } catch (error) {
       console.error(`[LibraryService] Erro ao buscar filme ${movieId} no TMDB:`, error.message);
       return null;
-    }
+      }
+    });
   }
 
   /**
@@ -56,7 +61,7 @@ class LibraryService {
    * Adiciona ou atualiza (Upsert) um filme na biblioteca do usuário.
    */
   async addMovie(data = {}) {
-    const { userId, movieId, status, watchedAt, watchedDate, rating, score } = data;
+    const { userId, movieId, status, watchedAt, watchedDate, rating, score, notes, favorite } = data;
 
     const parsedUserId = Number(userId);
     const parsedMovieId = Number(movieId);
@@ -95,7 +100,18 @@ class LibraryService {
       status: normalizedStatus,
       watchedAt: finalWatchedAt,
       rating: finalRating,
+      notes: typeof notes === 'string' ? notes.trim() || null : null,
+      favorite: Boolean(favorite),
     };
+
+    const updateData = {
+      status: payloadData.status,
+      watchedAt: payloadData.watchedAt,
+      rating: payloadData.rating,
+    };
+
+    if (notes !== undefined) updateData.notes = payloadData.notes;
+    if (favorite !== undefined) updateData.favorite = payloadData.favorite;
 
     return prisma.userMovie.upsert({
       where: {
@@ -104,11 +120,7 @@ class LibraryService {
           movieId: parsedMovieId,
         },
       },
-      update: {
-        status: payloadData.status,
-        watchedAt: payloadData.watchedAt,
-        rating: payloadData.rating,
-      },
+      update: updateData,
       create: payloadData,
     });
   }
@@ -190,7 +202,7 @@ class LibraryService {
    * Atualiza registro específico no banco.
    */
   async updateMovie(data = {}) {
-    const { userId, movieId, status, watchedAt, watchedDate, rating, score, favorite } = data;
+    const { userId, movieId, status, watchedAt, watchedDate, rating, score, favorite, notes } = data;
 
     const parsedUserId = Number(userId);
     const parsedMovieId = Number(movieId);
@@ -203,6 +215,10 @@ class LibraryService {
 
     if (favorite !== undefined) {
       updateData.favorite = Boolean(favorite);
+    }
+
+    if (notes !== undefined) {
+      updateData.notes = typeof notes === 'string' ? notes.trim() || null : null;
     }
 
     if (status !== undefined) {

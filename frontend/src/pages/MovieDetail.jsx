@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import MovieCard from '../components/MovieCard'
+import MovieComments from '../components/MovieComments'
 
 export default function MovieDetail() {
   const { id } = useParams()
@@ -555,6 +556,8 @@ export default function MovieDetail() {
           </form>
         </div>
       )}
+
+      <MovieComments movieId={Number(id)} isWatched={libraryEntry?.status === 'WATCHED'} />
 
       {/* Elenco */}
       {movie.cast?.length > 0 && (

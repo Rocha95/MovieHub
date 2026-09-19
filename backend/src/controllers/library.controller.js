@@ -92,7 +92,9 @@ class LibraryController {
           rating,
           score,
           nota,
-          userRating
+          userRating,
+          notes,
+          favorite
         } = req.body;
 
         const finalMovieId = movieId || id;
@@ -115,6 +117,8 @@ class LibraryController {
           // Se for WATCHED e houver data, faz o parse. Se não houver data, aí sim usa new Date()
           watchedAt: isWatched ? (rawDate ? this.#parseDate(rawDate) : new Date()) : null,
           rating: isWatched ? this.#parseRating(rawRating) : null,
+          notes: notes ?? null,
+          favorite: Boolean(favorite),
         };
 
         console.log('>>> [PAYLOAD SANITIZADO ENVIADO AO SERVICE]:', payload);
@@ -142,7 +146,7 @@ class LibraryController {
       const movieId = Number(req.params.movieId);
       if (!movieId) throw { status: 400, message: 'ID do filme inválido.' };
 
-      const { status, watchedAt, watchedDate, date, rating, score, nota, userRating } = req.body;
+      const { status, watchedAt, watchedDate, date, rating, score, nota, userRating, notes, favorite } = req.body;
       const rawDate = watchedAt || watchedDate || date;
       const rawRating = rating !== undefined ? rating : (score !== undefined ? score : (nota !== undefined ? nota : userRating));
 
@@ -156,6 +160,8 @@ class LibraryController {
         ...(rawRating !== undefined && {
           rating: this.#parseRating(rawRating),
         }),
+        ...(notes !== undefined && { notes }),
+        ...(favorite !== undefined && { favorite: Boolean(favorite) }),
       };
 
       return LibraryService.updateMovie(payload);

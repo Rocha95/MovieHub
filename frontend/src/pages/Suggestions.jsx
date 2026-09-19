@@ -1,11 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/client';
 
-const TMDB_API_KEY =
-  import.meta.env.VITE_TMDB_API_KEY || '92db8f15ae04ad999f2b051360a79fa6';
-const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
-const TMDB_LOGO_BASE = 'https://image.tmdb.org/t/p/w92';
 
 // Dados do Quiz
 const MOODS = [
@@ -51,6 +47,21 @@ export default function Suggestions() {
   const [loadingQuiz, setLoadingQuiz] = useState(false);
 
   const [error, setError] = useState(null);
+  const [personalized, setPersonalized] = useState([]);
+  const [loadingPersonalized, setLoadingPersonalized] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    api.get('/recommendations/personalized')
+      .then((res) => {
+        if (active) setPersonalized(res.data?.movies || []);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (active) setLoadingPersonalized(false);
+      });
+    return () => { active = false; };
+  }, []);
 
   // ==========================================
   // LÓGICA 1: Busca Por Filme Semelhante
@@ -114,13 +125,17 @@ export default function Suggestions() {
       if (quizDuration?.minRuntime) runtimeFilter += `&with_runtime.gte=${quizDuration.minRuntime}`;
       if (quizDuration?.maxRuntime) runtimeFilter += `&with_runtime.lte=${quizDuration.maxRuntime}`;
 
-      const res = await fetch(
-        `https://api.themoviedb.org/3/discover/movie?language=pt-BR&sort_by=popularity.desc&vote_count.gte=200&with_genres=${genreFilter || ''}${runtimeFilter}&api_key=${TMDB_API_KEY}`
-      );
+      const response = await api.get('/movies/discover', {
+        params: {
+          sort_by: 'popularity.desc',
+          'vote_count.gte': 200,
+          with_genres: genreFilter || undefined,
+          'with_runtime.gte': quizDuration?.minRuntime,
+          'with_runtime.lte': quizDuration?.maxRuntime,
+        },
+      });
 
-      if (!res.ok) throw new Error('Falha ao consultar TMDB');
-
-      const data = await res.json();
+      const data = { results: response.data || [] };
       if (!data.results || data.results.length === 0) {
         setError('Nenhum filme encontrado com esses filtros. Tente refazer o quiz!');
         setLoadingQuiz(false);
@@ -133,12 +148,12 @@ export default function Suggestions() {
       setQuizResult(picked);
 
       // Busca onde assistir (Watch Providers) no Brasil
-      const resProviders = await fetch(
-        `https://api.themoviedb.org/3/movie/${picked.id}/watch/providers?api_key=${TMDB_API_KEY}`
-      );
-      if (resProviders.ok) {
-        const provData = await resProviders.json();
-        setWatchProviders(provData.results?.BR?.flatrate || []);
+      try {
+        const providersResponse = await api.get(`/movies/${picked.id}/providers`);
+        const provData = providersResponse.data;
+        setWatchProviders(provData?.BR?.flatrate || []);
+      } catch {
+        setWatchProviders([]);
       }
     } catch (err) {
       console.error(err);
@@ -160,6 +175,41 @@ export default function Suggestions() {
   return (
     <main className="mx-auto max-w-6xl px-6 py-10 text-cream">
       {/* Cabeçalho e Seleção de Modo */}
+      <section className="mb-8 rounded-2xl border border-marquee-gold/20 bg-cinema-surface p-5 sm:p-6">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.2em] text-marquee-gold">Personalizado</p>
+            <h2 className="mt-1 font-display text-2xl text-cream">Recomendado para você</h2>
+            <p className="mt-1 text-xs text-dust">Sugestões calculadas a partir dos filmes que você já marcou como assistidos e das suas avaliações.</p>
+          </div>
+          {loadingPersonalized && <span className="text-xs text-dust">Analisando seu histórico...</span>}
+        </div>
+
+        {!loadingPersonalized && personalized.length > 0 && (
+          <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+            {personalized.map((movie) => (
+              <Link key={movie.id} to={`/filme/${movie.id}`} className="group overflow-hidden rounded-xl border border-cinema-surface-2 bg-cinema-black/30">
+                {movie.poster ? (
+                  <img src={movie.poster} alt={movie.title} className="h-52 w-full object-cover transition-transform group-hover:scale-105" loading="lazy" />
+                ) : (
+                  <div className="flex h-52 items-center justify-center bg-cinema-surface-2 text-xs text-dust">Sem cartaz</div>
+                )}
+                <div className="p-3">
+                  <p className="line-clamp-1 text-sm font-semibold text-cream group-hover:text-marquee-gold">{movie.title}</p>
+                  <p className="mt-1 text-xs text-dust">★ {movie.voteAverage ? Number(movie.voteAverage).toFixed(1) : '—'}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {!loadingPersonalized && personalized.length === 0 && (
+          <p className="mt-5 rounded-xl bg-cinema-black/40 p-4 text-sm text-dust">
+            Assista e avalie alguns filmes para o MovieHub aprender suas preferências.
+          </p>
+        )}
+      </section>
+
       <div className="mb-8 border-b border-cinema-surface-2 pb-6">
         <h1 className="font-display text-3xl tracking-wide text-marquee-gold">
           Sugestões de Filmes

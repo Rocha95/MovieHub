@@ -34,6 +34,18 @@ class MovieController {
     );
   };
 
+  discover = async (req, res, next) => {
+    return this.handleRequest(res, next, () =>
+      MovieService.discover(req.query)
+    );
+  };
+
+  getAllTimeBoxOffice = async (req, res, next) => {
+    return this.handleRequest(res, next, () =>
+      MovieService.getAllTimeBoxOffice(req.query.year)
+    );
+  };
+
   getPopular = async (req, res, next) => {
     return this.handleRequest(res, next, () =>
       MovieService.getPopular()

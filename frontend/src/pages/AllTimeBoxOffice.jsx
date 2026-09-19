@@ -1,8 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-
-const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY || '92db8f15ae04ad999f2b051360a79fa6'
-const BASE_URL = 'https://api.themoviedb.org/3'
-const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500'
+import api from '../api/client'
 
 // Formata valores numéricos para moeda em USD (ex: $2,923,706,026)
 const formatCurrency = (value) => {
@@ -32,38 +29,13 @@ export default function AllTimeBoxOffice() {
     setError(null)
 
     try {
-      // 1. Busca a lista de filmes ordenados por receita
-      let url = `${BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&language=pt-BR&sort_by=revenue.desc&page=1`
-      if (selectedYear) {
-        url += `&primary_release_year=${selectedYear}`
-      }
-
-      const res = await fetch(url)
-      if (!res.ok) throw new Error(`Erro na requisição: ${res.status}`)
-
-      const data = await res.json()
-      const rawMovies = data.results || []
-
-      // 2. Busca detalhes para obter o valor exato da receita (`revenue`) de cada filme
-      const detailedMovies = await Promise.all(
-        rawMovies.slice(0, 20).map(async (movie) => {
-          try {
-            const detailRes = await fetch(
-              `${BASE_URL}/movie/${movie.id}?api_key=${TMDB_API_KEY}&language=pt-BR`
-            )
-            if (!detailRes.ok) return movie
-            const detailData = await detailRes.json()
-            return { ...movie, revenue: detailData.revenue }
-          } catch {
-            return movie
-          }
-        })
-      )
-
-      setMovies(detailedMovies)
+      const response = await api.get('/movies/all-time-boxoffice', {
+        params: selectedYear ? { year: selectedYear } : {},
+      })
+      setMovies(response.data || [])
     } catch (err) {
       console.error('Erro ao carregar bilheterias:', err)
-      setError(err.message)
+      setError(err.response?.data?.message || 'Não foi possível carregar os dados de bilheteria.')
     } finally {
       setLoading(false)
     }
@@ -123,7 +95,7 @@ export default function AllTimeBoxOffice() {
         /* Grid de Cards */
         <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {movies.map((movie, index) => {
-            const releaseYear = movie.release_date ? movie.release_date.split('-')[0] : 'N/A'
+            const releaseYear = movie.releaseDate ? movie.releaseDate.split('-')[0] : 'N/A'
             const formattedRevenue = formatCurrency(movie.revenue)
 
             return (

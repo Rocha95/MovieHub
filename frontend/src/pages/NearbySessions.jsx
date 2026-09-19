@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
+import api from '../api/client'
 
-const API_BASE_URL = 'http://localhost:3000'
 
 export default function NearbySessions() {
   const [movies, setMovies] = useState([])
@@ -10,6 +10,24 @@ export default function NearbySessions() {
   const [cityInput, setCityInput] = useState('')
   const [loadingLocation, setLoadingLocation] = useState(false)
   const [error, setError] = useState(null)
+  const [cities, setCities] = useState([])
+
+  // Catálogo de cidades em cache no backend; usado para evitar erros de digitação.
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (cityInput.trim().length < 2) {
+        setCities([])
+        return
+      }
+      try {
+        const response = await api.get(`/cities?search=${encodeURIComponent(cityInput.trim())}`)
+        setCities(response.data || [])
+      } catch {
+        setCities([])
+      }
+    }, 250)
+    return () => clearTimeout(timer)
+  }, [cityInput])
 
   // 1. Busca os filmes com cancelamento de requisições antigas (AbortController)
   useEffect(() => {
@@ -21,13 +39,11 @@ export default function NearbySessions() {
 
       try {
         const query = location ? `?city=${encodeURIComponent(location.trim())}` : ''
-        const res = await fetch(`${API_BASE_URL}/movies/now-playing${query}`, {
-          signal: controller.signal,
-        })
+        const res = await api.get(`/movies/now-playing${query}`, { signal: controller.signal })
 
-        if (!res.ok) throw new Error('Erro ao carregar filmes em cartaz.')
+        if (!res.data) throw new Error('Erro ao carregar filmes em cartaz.')
 
-        const data = await res.json()
+        const data = res.data
 
         // Tratamento flexível: aceita { movies: [...] } ou array direto [...]
         const movieList = Array.isArray(data) ? data : (data.movies || [])
@@ -160,12 +176,18 @@ export default function NearbySessions() {
         <form onSubmit={handleManualCitySubmit} className="mt-4 flex gap-3 max-w-md">
           <input
             type="text"
+            list="moviehub-cities"
             value={cityInput}
             onChange={(e) => setCityInput(e.target.value)}
             placeholder="Ou digite sua cidade (ex: Sorocaba)..."
             className="flex-1 rounded-full border border-cinema-surface-2 bg-cinema-black px-4 py-1.5 text-sm text-cream placeholder-dust outline-none focus:border-marquee-gold"
             aria-label="Digite sua cidade"
           />
+          <datalist id="moviehub-cities">
+            {cities.map((city) => (
+              <option key={city.id} value={city.name}>{city.name} - {city.uf}</option>
+            ))}
+          </datalist>
           <button
             type="submit"
             className="rounded-full border border-marquee-gold px-4 py-1.5 text-sm text-marquee-gold hover:bg-marquee-gold hover:text-cinema-black transition-colors"
@@ -179,7 +201,7 @@ export default function NearbySessions() {
 
         {!error && location && source === 'tmdb-fallback' && (
           <p className="text-sm text-dust mt-3">
-            Ainda não temos a grade confirmada para <strong>{location}</strong> — exibindo o cartaz geral em exibição.
+            Não foi possível confirmar sessões para <strong>{location}</strong> agora — exibindo o cartaz geral em exibição.
           </p>
         )}
         {!error && location && source === 'ingresso' && (
@@ -239,6 +261,25 @@ export default function NearbySessions() {
                       <span className="inline-block mt-2 text-xs font-medium text-marquee-gold">
                         ★ {movie.voteAverage ? movie.voteAverage.toFixed(1) : 'N/A'}
                       </span>
+
+                      {movie.sessions?.length > 0 && (
+                        <div className="mt-3 rounded-lg border border-cinema-surface-2 bg-cinema-black/40 p-3">
+                          <p className="text-[10px] uppercase tracking-wider text-dust">Sessões</p>
+                          <div className="mt-2 space-y-2">
+                            {movie.sessions.slice(0, 5).map((session, index) => (
+                              <div key={`${session.cinema}-${session.time}-${index}`} className="text-xs">
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                  <strong className="text-cream">{session.cinema}</strong>
+                                  <span className="font-semibold text-marquee-gold">{session.time}</span>
+                                </div>
+                                <p className="mt-0.5 text-dust">
+                                  {session.room ? `${session.room} · ` : ''}{session.type?.join(', ') || 'Sessão'}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex flex-wrap gap-2 mt-4">

@@ -2,10 +2,6 @@ import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../api/client';
 
-const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w200';
-const TMDB_API_KEY =
-  import.meta.env.VITE_TMDB_API_KEY || '92db8f15ae04ad999f2b051360a79fa6';
-
 const PLACEHOLDER_POSTER =
   'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="150" height="225" viewBox="0 0 150 225"><rect width="100%" height="100%" fill="%231a1a24"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23888899" font-family="sans-serif" font-size="14">Sem Capa</text></svg>';
 
@@ -49,24 +45,15 @@ export default function ListDetails() {
             }
 
             try {
-              const resMovie = await fetch(
-                `https://api.themoviedb.org/3/movie/${rawMovieId}?language=pt-BR&api_key=${TMDB_API_KEY}`
-              );
-
-              if (!resMovie.ok) {
-                throw new Error(`HTTP ${resMovie.status}`);
-              }
-
-              const movieData = await resMovie.json();
+              const resMovie = await api.get(`/movies/${rawMovieId}`);
+              const movieData = resMovie.data;
 
               return {
                 idItem: item.id || rawMovieId,
                 movieId: rawMovieId,
-                title: movieData.title || movieData.original_title || `Filme #${rawMovieId}`,
-                poster: movieData.poster_path
-                  ? `${TMDB_IMAGE_BASE}${movieData.poster_path}`
-                  : PLACEHOLDER_POSTER,
-                releaseDate: movieData.release_date,
+                title: movieData.title || movieData.originalTitle || `Filme #${rawMovieId}`,
+                poster: movieData.poster || PLACEHOLDER_POSTER,
+                releaseDate: movieData.releaseDate || null,
               };
             } catch (err) {
               console.warn(`Erro ao buscar dados do filme #${rawMovieId} no TMDB:`, err);

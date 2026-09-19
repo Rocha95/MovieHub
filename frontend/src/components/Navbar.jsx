@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext' // Ajuste o caminho conforme se
 export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState('')
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
   const dropdownRef = useRef(null)
   const navigate = useNavigate()
   const location = useLocation()
@@ -19,6 +20,7 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     setDropdownOpen(false)
+    setMobileOpen(false)
     if (logout) {
       await logout()
     } else {
@@ -59,15 +61,15 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 bg-cinema-black/95 backdrop-blur border-b border-cinema-surface-2 px-6 py-4">
-      <div className="mx-auto max-w-6xl flex items-center justify-between gap-4">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
         
         {/* Esquerda: Logo + Campo de Busca */}
-        <div className="flex items-center gap-6">
+        <div className="flex min-w-0 items-center gap-3 sm:gap-6">
           <Link to="/" className="font-display text-2xl text-marquee-gold font-bold tracking-wider shrink-0">
             MOVIEHUB
           </Link>
 
-          <form onSubmit={handleSearch} className="relative w-48 sm:w-64">
+          <form onSubmit={handleSearch} className="relative hidden w-48 sm:block sm:w-64">
             <input
               type="text"
               value={searchQuery}
@@ -88,7 +90,7 @@ export default function Navbar() {
         </div>
 
         {/* Direita: Links de Navegação */}
-        <nav className="flex items-center space-x-6">
+        <nav className="hidden items-center space-x-6 md:flex">
           {/* SEMPRE VISÍVEL */}
           <Link to="/" className="text-cream hover:text-marquee-gold transition-colors text-sm font-medium whitespace-nowrap">
             Início
@@ -194,7 +196,47 @@ export default function Navbar() {
           )}
         </nav>
 
+        <button
+          type="button"
+          onClick={() => setMobileOpen((open) => !open)}
+          className="rounded-lg border border-cinema-surface-2 bg-cinema-surface px-3 py-2 text-cream md:hidden"
+          aria-label="Abrir menu"
+          aria-expanded={mobileOpen}
+        >
+          {mobileOpen ? '✕' : '☰'}
+        </button>
       </div>
+
+      {mobileOpen && (
+        <div className="mx-auto mt-3 max-w-6xl rounded-xl border border-cinema-surface-2 bg-cinema-surface p-3 md:hidden">
+          <form onSubmit={handleSearch} className="mb-3 flex gap-2">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Pesquisar filme..."
+              className="min-w-0 flex-1 rounded-full border border-cinema-surface-2 bg-cinema-black px-4 py-2 text-sm text-cream placeholder-dust focus:border-marquee-gold focus:outline-none"
+            />
+            <button type="submit" className="rounded-full bg-marquee-gold px-4 py-2 text-xs font-semibold text-cinema-black">Buscar</button>
+          </form>
+          <div className="grid gap-1">
+            <Link onClick={() => setMobileOpen(false)} to="/" className="rounded-lg px-3 py-2 text-sm text-cream hover:bg-cinema-surface-2">Início</Link>
+            {isAuthenticated && (
+              <>
+                <Link onClick={() => setMobileOpen(false)} to="/sessoes" className="rounded-lg px-3 py-2 text-sm text-cream hover:bg-cinema-surface-2">Sessões</Link>
+                <Link onClick={() => setMobileOpen(false)} to="/bilheteria/em-cartaz" className="rounded-lg px-3 py-2 text-sm text-cream hover:bg-cinema-surface-2">Bilheteria — Em Cartaz</Link>
+                <Link onClick={() => setMobileOpen(false)} to="/bilheteria/todos-os-tempos" className="rounded-lg px-3 py-2 text-sm text-cream hover:bg-cinema-surface-2">Bilheteria — Todos os Tempos</Link>
+                <Link onClick={() => setMobileOpen(false)} to="/sugestoes" className="rounded-lg px-3 py-2 text-sm text-cream hover:bg-cinema-surface-2">Sugestões</Link>
+                <Link onClick={() => setMobileOpen(false)} to="/biblioteca" className="rounded-lg px-3 py-2 text-sm text-cream hover:bg-cinema-surface-2">Minha Biblioteca</Link>
+                <Link onClick={() => setMobileOpen(false)} to="/listas" className="rounded-lg px-3 py-2 text-sm text-cream hover:bg-cinema-surface-2">Listas</Link>
+                <Link onClick={() => setMobileOpen(false)} to="/dashboard" className="rounded-lg px-3 py-2 text-sm text-cream hover:bg-cinema-surface-2">Dashboard</Link>
+                <button onClick={handleLogout} className="rounded-lg px-3 py-2 text-left text-sm text-red-300 hover:bg-cinema-surface-2">Sair</button>
+              </>
+            )}
+            {!isAuthenticated && <Link onClick={() => setMobileOpen(false)} to="/entrar" className="rounded-lg bg-marquee-gold px-3 py-2 text-center text-sm font-semibold text-cinema-black">Entrar</Link>}
+          </div>
+        </div>
+      )}
     </header>
   )
 }

@@ -1,34 +1,23 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Link } from 'react-router-dom'
+import api from '../api/client'
 
-const API_BASE_URL = 'http://localhost:3000/lists'
-
-// Helper para obter o ID de forma padronizada
-const getId = (item) => item?.id || item?._id
-
-// Helper para requisições com tratamento de token e erros
+// Helper para requisições com o cliente centralizado (JWT, base URL e tratamento 401).
 async function fetchApi(url, options = {}) {
-  const token = localStorage.getItem('token')
-  
-  // Copia os headers se existirem
-  const headers = {
-    ...(options.headers || {}),
-    ...(token ? { Authorization: `Bearer ${token}` } : {})
+  const method = options.method || 'GET'
+  let data = options.body
+
+  if (data && typeof data === 'string') {
+    try { data = JSON.parse(data) } catch {}
   }
 
-  // Se o body for FormData, REMOVE o Content-Type para o browser definir o multipart/form-data boundary
-  if (options.body instanceof FormData) {
-    delete headers['Content-Type']
-  }
-
-  const response = await fetch(url, { ...options, headers })
-  const data = await response.json().catch(() => ({}))
-
-  if (!response.ok) {
-    throw new Error(data.message || 'Erro no processamento da requisição.')
-  }
-
-  return data
+  const response = await api.request({
+    url,
+    method,
+    data,
+    headers: options.headers,
+  })
+  return response.data
 }
 
 export default function Listas() {
@@ -89,7 +78,7 @@ export default function Listas() {
     let isMounted = true
     async function loadListas() {
       try {
-        const data = await fetchApi(API_BASE_URL)
+        const data = await fetchApi('/lists')
         if (isMounted) setListas(Array.isArray(data) ? data : data.listas || [])
       } catch (err) {
         console.error('Erro ao buscar listas:', err)
@@ -168,7 +157,7 @@ export default function Listas() {
         }
       }
 
-      const data = await fetchApi(API_BASE_URL, options)
+      const data = await fetchApi('/lists', options)
       const novaLista = data.lista || data
       setListas((prev) => [novaLista, ...prev])
       setIsCreateModalOpen(false)
@@ -202,7 +191,7 @@ export default function Listas() {
         }
       }
 
-      const data = await fetchApi(`${API_BASE_URL}/${id}`, options)
+      const data = await fetchApi(`/lists/${id}`, options)
 
       // Garante extração da URL retornada do backend
       const updatedCapaUrl = 
@@ -239,7 +228,7 @@ export default function Listas() {
     setDeletingId(id)
 
     try {
-      await fetchApi(`${API_BASE_URL}/${id}`, { method: 'DELETE' })
+      await fetchApi(`/lists/${id}`, { method: 'DELETE' })
       setListas((prev) => prev.filter((item) => getId(item) !== id))
       setListToDelete(null)
     } catch (err) {
