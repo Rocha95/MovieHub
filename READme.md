@@ -78,7 +78,8 @@ O projeto foi desenvolvido como uma forma de aplicar, na prática, conceitos de 
 
 ### Detalhes do filme
 
-<img width="1205" height="688" alt="Detalhes" src="https://github.com/user-attachments/assets/c278ee0e-76af-4d33-9069-421c1215cf68" />
+<img width="1137" height="920" alt="image" src="https://github.com/user-attachments/assets/86747d87-9a3c-4147-9996-556c90850c2c" />
+" />
 
 ### Sessões
 
@@ -90,6 +91,10 @@ O projeto foi desenvolvido como uma forma de aplicar, na prática, conceitos de 
 
 ### Sugestões
 <img width="1221" height="807" alt="Sugestões" src="https://github.com/user-attachments/assets/ca74831f-aade-4f11-ad9a-ce93f7d8efbd" />
+
+### Recomendações
+<img width="1208" height="720" alt="image" src="https://github.com/user-attachments/assets/1bfbb6de-665a-4cf3-a2ce-757efb0d4887" />
+
 
 ### Minha Biblioteca 
 <img width="1329" height="695" alt="image" src="https://github.com/user-attachments/assets/a001c6f3-bac7-4706-b477-10a01a502fb8" />
@@ -301,22 +306,6 @@ O desenvolvimento do MovieHub permite colocar em prática conceitos como:
 * Git e GitHub
 * Organização de código
 * Separação de responsabilidades
-
----
-
-## 🔮 Próximos passos
-
-O MovieHub continua em desenvolvimento e novas funcionalidades podem ser adicionadas ao longo do projeto.
-
-Algumas possibilidades:
-
-* [ ] Comentários sobre os filmes assistidos
-* [ ] Sistema de recomendações baseado no histórico
-* [ ] Melhorias de responsividade
-* [ ] Testes automatizados
-* [ ] Dockerização da aplicação
-* [ ] Deploy da aplicação
-* [ ] Melhorias de performance e cache
 
 ---
 
