@@ -2,6 +2,12 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../api/client'
 
+// Normaliza o identificador das listas para manter compatibilidade com as
+// diferentes formas de resposta usadas pelo backend.
+function getId(lista) {
+  return Number(lista?.id ?? lista?.listId ?? lista?._id)
+}
+
 // Helper para requisições com o cliente centralizado (JWT, base URL e tratamento 401).
 async function fetchApi(url, options = {}) {
   const method = options.method || 'GET'
