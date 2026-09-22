@@ -1,6 +1,6 @@
 # 🎬 MovieHub
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-moviehub)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-moviehub)
 
 **Uma plataforma Full Stack para descobrir, organizar e acompanhar filmes.**
 
@@ -10,7 +10,7 @@
 
 ## 📖 Sobre o projeto
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-sobre-o-projeto)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-sobre-o-projeto)
 
 O **MovieHub** é uma aplicação Full Stack desenvolvida com o objetivo de centralizar a experiência do usuário com filmes.
 
@@ -22,11 +22,11 @@ O projeto foi desenvolvido como uma forma de aplicar, na prática, conceitos de 
 
 ## ✨ Funcionalidades
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-funcionalidades)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-funcionalidades)
 
 ### 🎬 Filmes
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-filmes)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-filmes)
 
 * Busca de filmes
 * Visualização de informações detalhadas
@@ -41,7 +41,7 @@ O projeto foi desenvolvido como uma forma de aplicar, na prática, conceitos de 
 
 ### 📚 Biblioteca
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-biblioteca)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-biblioteca)
 
 * Biblioteca pessoal de filmes
 * Organização dos filmes
@@ -53,7 +53,7 @@ O projeto foi desenvolvido como uma forma de aplicar, na prática, conceitos de 
 
 ### ❤️ Listas
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#%EF%B8%8F-listas)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#%EF%B8%8F-listas)
 
 * Criação de listas personalizadas
 * Adição e remoção de filmes
@@ -64,7 +64,7 @@ O projeto foi desenvolvido como uma forma de aplicar, na prática, conceitos de 
 
 ### 🎟️ Sessões
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#%EF%B8%8F-sess%C3%B5es)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#%EF%B8%8F-sess%C3%B5es)
 
 * Registro e acompanhamento de sessões
 * Histórico de filmes assistidos
@@ -76,7 +76,7 @@ O projeto foi desenvolvido como uma forma de aplicar, na prática, conceitos de 
 
 ### 💬 Comentários
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-coment%C3%A1rios)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-coment%C3%A1rios)
 
 * Comentários sobre filmes assistidos
 * Edição de comentários
@@ -87,7 +87,7 @@ O projeto foi desenvolvido como uma forma de aplicar, na prática, conceitos de 
 
 ### 🤖 Sugestões
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-sugest%C3%B5es)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-sugest%C3%B5es)
 
 * Sugestões baseadas nas preferências do usuário
 * Recomendações baseadas no histórico cinematográfico
@@ -100,7 +100,7 @@ O projeto foi desenvolvido como uma forma de aplicar, na prática, conceitos de 
 
 ### 📊 Dashboard
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-dashboard)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-dashboard)
 
 * Visão geral da biblioteca
 * Estatísticas dos filmes
@@ -111,7 +111,7 @@ O projeto foi desenvolvido como uma forma de aplicar, na prática, conceitos de 
 
 ### ⚡ Performance
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-performance)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-performance)
 
 * Cache com TTL
 * Deduplicação de requisições simultâneas
@@ -122,7 +122,7 @@ O projeto foi desenvolvido como uma forma de aplicar, na prática, conceitos de 
 
 ### 📱 Responsividade
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-responsividade)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-responsividade)
 
 * Interface adaptada para dispositivos móveis
 * Menu mobile
@@ -135,29 +135,29 @@ O projeto foi desenvolvido como uma forma de aplicar, na prática, conceitos de 
 
 ## 🖥️ Preview
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#%EF%B8%8F-preview)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#%EF%B8%8F-preview)
 
 ### Tela Inicial
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#tela-inicial)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#tela-inicial)
 
 [image](https://private-user-images.githubusercontent.com/14837801/643894047-bfeef329-5bfd-406e-803d-c9a99ff9b17c.png)
 
 ### Detalhes do filme
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#detalhes-do-filme)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#detalhes-do-filme)
 
 [Detalhes](https://private-user-images.githubusercontent.com/14837801/646806730-c278ee0e-76af-4d33-9069-421c1215cf68.png)
 
 ### Sessões
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#sess%C3%B5es)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#sess%C3%B5es)
 
 [Sessoes](https://private-user-images.githubusercontent.com/14837801/646806800-be3daa41-c552-4b35-95be-430479dcd857.png)
 
 ### Bilheterias
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#bilheterias)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#bilheterias)
 
 [Bilheterias-1](https://private-user-images.githubusercontent.com/14837801/651680517-8518b5c4-4fe3-49cb-a87a-c8e7d2f0fc6c.png)
 
@@ -165,19 +165,19 @@ O projeto foi desenvolvido como uma forma de aplicar, na prática, conceitos de 
 
 ### Sugestões
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#sugest%C3%B5es)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#sugest%C3%B5es)
 
 [Sugestões](https://private-user-images.githubusercontent.com/14837801/651680776-ca74831f-aade-4f11-ad9a-ce93f7d8efbd.png)
 
 ### Minha Biblioteca
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#minha-biblioteca)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#minha-biblioteca)
 
 [image](https://private-user-images.githubusercontent.com/14837801/651716468-a001c6f3-bac7-4706-b477-10a01a502fb8.png)
 
 ### Listas
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#listas)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#listas)
 
 [image](https://private-user-images.githubusercontent.com/14837801/652254660-269cf079-5316-40e7-a12e-326534d7ab20.png)
 
@@ -187,7 +187,7 @@ O projeto foi desenvolvido como uma forma de aplicar, na prática, conceitos de 
 
 ### Dashboard
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#dashboard)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#dashboard)
 
 [image](https://private-user-images.githubusercontent.com/14837801/652256311-9ee9f268-f76b-4b54-ba8e-445852cb41a5.png)
 
@@ -197,7 +197,7 @@ O projeto foi desenvolvido como uma forma de aplicar, na prática, conceitos de 
 
 ## 🏗️ Arquitetura
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#%EF%B8%8F-arquitetura)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#%EF%B8%8F-arquitetura)
 
 O MovieHub foi desenvolvido seguindo uma arquitetura separando **frontend, backend, banco de dados e integrações externas**.
 
@@ -241,11 +241,11 @@ O backend centraliza as integrações externas, autenticação, regras de negóc
 
 ## 🛠️ Tecnologias
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#%EF%B8%8F-tecnologias)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#%EF%B8%8F-tecnologias)
 
 ### Frontend
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#frontend)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#frontend)
 
 * ⚛️ **React**
 * ⚡ **Vite**
@@ -256,7 +256,7 @@ O backend centraliza as integrações externas, autenticação, regras de negóc
 
 ### Backend
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#backend)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#backend)
 
 * 🟢 **Node.js**
 * 🚂 **Express**
@@ -267,14 +267,14 @@ O backend centraliza as integrações externas, autenticação, regras de negóc
 
 ### Banco de dados
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#banco-de-dados)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#banco-de-dados)
 
 * 🐘 **PostgreSQL**
 * 🔷 **Prisma ORM**
 
 ### Integrações
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#integra%C3%A7%C3%B5es)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#integra%C3%A7%C3%B5es)
 
 * 🎬 **TMDB API**
 * 🎞️ **OMDb API**
@@ -282,7 +282,7 @@ O backend centraliza as integrações externas, autenticação, regras de negóc
 
 ### Testes e infraestrutura
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#testes-e-infraestrutura)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#testes-e-infraestrutura)
 
 * 🧪 **Jest**
 * 🐳 **Docker**
@@ -290,7 +290,7 @@ O backend centraliza as integrações externas, autenticação, regras de negóc
 
 ### Ferramentas
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#ferramentas)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#ferramentas)
 
 * Git
 * GitHub
@@ -301,7 +301,7 @@ O backend centraliza as integrações externas, autenticação, regras de negóc
 
 ## 📂 Estrutura do projeto
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-estrutura-do-projeto)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-estrutura-do-projeto)
 
 ```text
 MovieHub/
@@ -344,11 +344,11 @@ MovieHub/
 
 ## 🚀 Como executar
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-como-executar)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-como-executar)
 
 ### Pré-requisitos
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#pr%C3%A9-requisitos)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#pr%C3%A9-requisitos)
 
 Antes de iniciar, você precisará ter instalado:
 
@@ -360,7 +360,7 @@ Ou, alternativamente, utilizar Docker para executar o ambiente completo.
 
 ### 1. Clone o repositório
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#1-clone-o-reposit%C3%B3rio)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#1-clone-o-reposit%C3%B3rio)
 
 ```bash
 git clone https://github.com/SEU-USUARIO/moviehub.git
@@ -372,7 +372,7 @@ cd moviehub
 
 ### 2. Instale as dependências
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#2-instale-as-depend%C3%AAncias)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#2-instale-as-depend%C3%AAncias)
 
 Frontend:
 
@@ -394,7 +394,7 @@ npm install
 
 ### 3. Configure as variáveis de ambiente
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#3-configure-as-vari%C3%A1veis-de-ambiente)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#3-configure-as-vari%C3%A1veis-de-ambiente)
 
 Crie um arquivo `.env` no backend.
 
@@ -418,7 +418,7 @@ Consulte o arquivo `.env.example` para verificar todas as variáveis disponívei
 
 ### 4. Configure o banco de dados
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#4-configure-o-banco-de-dados)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#4-configure-o-banco-de-dados)
 
 Execute as migrations do Prisma:
 
@@ -434,7 +434,7 @@ npx prisma migrate dev
 
 ### 5. Inicie o backend
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#5-inicie-o-backend)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#5-inicie-o-backend)
 
 ```bash
 npm run dev
@@ -444,7 +444,7 @@ npm run dev
 
 ### 6. Inicie o frontend
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#6-inicie-o-frontend)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#6-inicie-o-frontend)
 
 Em outro terminal:
 
@@ -459,7 +459,7 @@ Depois, acesse a aplicação através da URL exibida pelo Vite.
 
 ### 🐳 Executando com Docker
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-executando-com-docker)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-executando-com-docker)
 
 Para executar PostgreSQL, backend e frontend através do Docker:
 
@@ -501,7 +501,7 @@ deploy/DEPLOY-VPS.md
 
 ## 🧪 Testes
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-testes)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-testes)
 
 Os testes automatizados do backend podem ser executados através de:
 
@@ -521,7 +521,7 @@ O projeto também possui validações relacionadas à sintaxe dos arquivos JavaS
 
 ## 🧠 Principais conceitos aplicados
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-principais-conceitos-aplicados)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-principais-conceitos-aplicados)
 
 O desenvolvimento do MovieHub permite colocar em prática conceitos como:
 
@@ -549,7 +549,7 @@ O desenvolvimento do MovieHub permite colocar em prática conceitos como:
 
 ## 🔮 Próximos passos
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-pr%C3%B3ximos-passos)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-pr%C3%B3ximos-passos)
 
 O MovieHub continua em desenvolvimento e novas funcionalidades podem ser adicionadas ao longo do projeto.
 
@@ -574,7 +574,7 @@ Algumas possibilidades:
 
 ## 🎯 Objetivo do projeto
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-objetivo-do-projeto)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#-objetivo-do-projeto)
 
 Além de criar uma aplicação relacionada a cinema, o MovieHub tem como objetivo servir como um projeto prático para evolução em **desenvolvimento web moderno, arquitetura Full Stack, integração com APIs externas e construção de aplicações escaláveis**.
 
@@ -584,7 +584,7 @@ Através dele, estou explorando a integração entre **React, Node.js, PostgreSQ
 
 ## 👨‍💻 Autor
 
-[svg](https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#%E2%80%8D-autor)
+(https://github.com/Rocha95/MovieHub/blob/f663ae668568977e627575656b3c58d85fe083cd/READme.md#%E2%80%8D-autor)
 
 **Gustavo Rocha**
 
