@@ -24,7 +24,10 @@ function flexibleTitlesMatch(titleA, titleB) {
 
 function getPartnerships() {
   const configured = process.env.INGRESSO_PARTNERSHIPS || process.env.INGRESSO_PARTNERSHIP || '';
-  return configured.split(',').map((item) => item.trim()).filter(Boolean);
+  return configured
+    .split(',')
+    .map((item) => item.trim().replace(/^['"]|['"]$/g, ''))
+    .filter(Boolean);
 }
 
 class IngressoService {
@@ -43,15 +46,22 @@ class IngressoService {
         const key = `now-playing:${city.id}:${partnership}`;
         return cache.getOrSet(key, async () => {
           const { data } = await ingressoClient.get(
-            `/templates/nowplaying/${city.id}/partnership/${partnership}`
+            `/templates/nowplaying/${city.id}`,
+            { params: { partnership } }
           );
           return Array.isArray(data) ? data : (data?.events || data?.items || data?.data || []);
         });
       })
     );
 
-    return results
-      .filter((result) => result.status === 'fulfilled')
+    const successful = results.filter((result) => result.status === 'fulfilled');
+
+    if (!successful.length) {
+      const firstError = results.find((result) => result.status === 'rejected')?.reason;
+      throw firstError || new Error('Não foi possível consultar o Ingresso.com para esta cidade.');
+    }
+
+    return successful
       .flatMap((result) => result.value)
       .filter(Boolean);
   }
@@ -67,15 +77,22 @@ class IngressoService {
         const key = `highlights:${city.id}:${partnership}`;
         return cache.getOrSet(key, async () => {
           const { data } = await ingressoClient.get(
-            `/templates/highlights/${city.id}/partnership/${partnership}`
+            `/templates/highlights/${city.id}`,
+            { params: { partnership } }
           );
           return Array.isArray(data) ? data : [];
         });
       })
     );
 
-    return results
-      .filter((result) => result.status === 'fulfilled')
+    const successful = results.filter((result) => result.status === 'fulfilled');
+
+    if (!successful.length) {
+      const firstError = results.find((result) => result.status === 'rejected')?.reason;
+      throw firstError || new Error('Não foi possível consultar as sessões desta cidade.');
+    }
+
+    return successful
       .flatMap((result) => result.value)
       .filter(Boolean);
   }

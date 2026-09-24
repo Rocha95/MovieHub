@@ -46,63 +46,55 @@ class MovieService {
   }
 
   async getNowPlaying(city) {
-    const movies = await this.fetchMovieList('/movie/now_playing');
     const cleanCity = city?.trim();
 
-    if (!cleanCity) return { city: null, source: 'tmdb', movies };
+    // Sem cidade, mantém o comportamento original de exibir o catálogo geral do TMDB.
+    if (!cleanCity) {
+      const movies = await this.fetchMovieList('/movie/now_playing');
+      return { city: null, source: 'tmdb', movies };
+    }
 
-    try {
-      const result = await ingressoService.getMovieTitlesInCity(cleanCity);
+    const result = await ingressoService.getMovieTitlesInCity(cleanCity);
 
-      if (!result.city) {
-        return {
-          city: cleanCity,
-          source: 'tmdb-fallback',
-          reason: 'CITY_NOT_FOUND',
-          movies,
-        };
-      }
+    if (!result.city) {
+      const error = new Error(`Cidade não encontrada no catálogo do Ingresso.com: ${cleanCity}`);
+      error.statusCode = 404;
+      error.code = 'CITY_NOT_FOUND';
+      throw error;
+    }
 
-      if (!result.titles.length) {
-        return {
-          city: result.city.name,
-          cityId: result.city.id,
-          source: 'tmdb-fallback',
-          reason: 'NO_SESSIONS',
-          movies,
-        };
-      }
-
-      const filtered = ingressoService.filterMoviesByTitles(movies, result.titles);
-      const highlights = await ingressoService.getHighlightsByCity(result.city);
-      const sessions = ingressoService.normalizeShowtimes(highlights);
-
-      const withSessions = (filtered.length ? filtered : movies).map((movie) => ({
-        ...movie,
-        sessions: sessions.filter((session) =>
-          ingressoService.filterMoviesByTitles(
-            [{ title: movie.title, originalTitle: movie.originalTitle }],
-            [session.movieTitle, session.movieOriginalTitle].filter(Boolean)
-          ).length > 0
-        ),
-      }));
-
+    if (!result.titles.length) {
       return {
         city: result.city.name,
         cityId: result.city.id,
-        source: filtered.length ? 'ingresso' : 'tmdb-fallback',
-        reason: filtered.length ? null : 'NO_TMDB_MATCH',
-        movies: withSessions,
-      };
-    } catch (error) {
-      console.error(`Erro ao filtrar filmes para "${cleanCity}":`, error.message);
-      return {
-        city: cleanCity,
-        source: 'tmdb-fallback',
-        reason: 'INGRESSO_UNAVAILABLE',
-        movies,
+        source: 'ingresso',
+        reason: 'NO_MOVIES_IN_CITY',
+        movies: [],
       };
     }
+
+    const movies = await this.fetchMovieList('/movie/now_playing');
+    const filtered = ingressoService.filterMoviesByTitles(movies, result.titles);
+    const highlights = await ingressoService.getHighlightsByCity(result.city);
+    const sessions = ingressoService.normalizeShowtimes(highlights);
+
+    const withSessions = filtered.map((movie) => ({
+      ...movie,
+      sessions: sessions.filter((session) =>
+        ingressoService.filterMoviesByTitles(
+          [{ title: movie.title, originalTitle: movie.originalTitle }],
+          [session.movieTitle, session.movieOriginalTitle].filter(Boolean)
+        ).length > 0
+      ),
+    }));
+
+    return {
+      city: result.city.name,
+      cityId: result.city.id,
+      source: 'ingresso',
+      reason: filtered.length ? null : 'NO_TMDB_MATCH',
+      movies: withSessions,
+    };
   }
 
 

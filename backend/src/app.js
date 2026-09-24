@@ -1,4 +1,5 @@
 const path = require('path');
+const dotenv = require('dotenv');
 const express = require('express');
 const cors = require('cors');
 
@@ -6,7 +7,7 @@ const routes = require('./routes');
 
 const errorMiddleware = require('./middlewares/error.middleware');
 
-require('dotenv').config();
+dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 const app = express();
 

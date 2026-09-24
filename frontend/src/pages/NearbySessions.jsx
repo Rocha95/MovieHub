@@ -4,7 +4,7 @@ import api from '../api/client'
 
 export default function NearbySessions() {
   const [movies, setMovies] = useState([])
-  const [source, setSource] = useState(null) // 'tmdb' | 'ingresso' | 'tmdb-fallback'
+  const [source, setSource] = useState(null) // 'tmdb' | 'ingresso'
   const [loadingMovies, setLoadingMovies] = useState(false)
   const [location, setLocation] = useState('')
   const [cityInput, setCityInput] = useState('')
@@ -44,16 +44,20 @@ export default function NearbySessions() {
         if (!res.data) throw new Error('Erro ao carregar filmes em cartaz.')
 
         const data = res.data
+        if (!Array.isArray(data.movies) && !Array.isArray(data)) {
+          throw new Error(data.message || 'Erro ao carregar filmes em cartaz.')
+        }
 
         // Tratamento flexível: aceita { movies: [...] } ou array direto [...]
         const movieList = Array.isArray(data) ? data : (data.movies || [])
-        const currentSource = Array.isArray(data) ? (location ? 'tmdb-fallback' : 'tmdb') : (data.source || null)
+        const currentSource = Array.isArray(data) ? 'tmdb' : (data.source || null)
 
         setMovies(movieList)
         setSource(currentSource)
       } catch (err) {
         if (err.name !== 'AbortError') {
-          setError('Não foi possível carregar a lista de filmes para esta localização.')
+          const apiMessage = err?.response?.data?.message || err?.message
+          setError(apiMessage || 'Não foi possível carregar a lista de filmes para esta localização.')
           setMovies([])
           setSource(null)
         }
@@ -124,7 +128,12 @@ export default function NearbySessions() {
     e.preventDefault()
     const trimmedCity = cityInput.trim()
     if (!trimmedCity) return
-    setLocation(trimmedCity)
+
+    const exactCity = cities.find(
+      (city) => city.name?.toLowerCase() === trimmedCity.toLowerCase()
+    )
+
+    setLocation(exactCity?.name || trimmedCity)
     setError(null)
   }
 
@@ -199,11 +208,6 @@ export default function NearbySessions() {
         {/* Feedbacks de Erro e Origem dos Dados */}
         {error && <p className="text-sm text-velvet mt-3" role="alert">{error}</p>}
 
-        {!error && location && source === 'tmdb-fallback' && (
-          <p className="text-sm text-dust mt-3">
-            Não foi possível confirmar sessões para <strong>{location}</strong> agora — exibindo o cartaz geral em exibição.
-          </p>
-        )}
         {!error && location && source === 'ingresso' && (
           <p className="text-sm text-dust mt-3">
             Sessões confirmadas para {location}.
